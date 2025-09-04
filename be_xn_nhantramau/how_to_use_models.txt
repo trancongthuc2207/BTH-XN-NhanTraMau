@@ -1,0 +1,139 @@
+from django.contrib.auth.models import User
+from .services import form_mail_service
+
+# Assuming a user object exists
+user_instance = User.objects.get(username='admin')
+
+# Step 1: Save a new FormMail instance
+html_template = "<h1>Hello, {name}!</h1><p>Your order for {product} is confirmed.</p>"
+default_vars = {"product": "a new book", "name": "Guest"}
+saved_form = form_mail_service.save_form_mail(
+    user=user_instance,
+    name_form="order_confirmation",
+    html_content=html_template,
+    variables=default_vars,
+    type_form="notification"
+)
+print(f"Form saved with name: {saved_form.name_form}")
+
+# Step 2: Retrieve and render the form mail
+retrieved_form = form_mail_service.get_form_mail("order_confirmation", user=user_instance)
+if retrieved_form:
+    # This context will override the default "name" variable
+    context = {"name": "John Doe", "product": "a new laptop"}
+    rendered_content = form_mail_service.render_form_mail(retrieved_form, context)
+    print("--- Rendered HTML ---")
+    print(rendered_content)
+    # The output will be:
+    # "<h1>Hello, John Doe!</h1><p>Your order for a new laptop is confirmed.</p>"
+else:
+    print("Form not found.")
+
+
+===========================================
+test mail
+
+# Example of a fully-featured context dictionary
+context_data = {
+    'recipients': ['john.doe@example.com'],
+    'subject': 'Thông báo quan trọng về {{ event_name }}',
+    'full_name': 'John Doe',
+    'event_name': 'Hội nghị khoa học',
+    'event_date': '2025-12-01',
+    'attachments': {
+        'Invitation.pdf': '/path/to/your/invitation.pdf',
+    },
+    'body_images': {
+        'logo': '/path/to/your/company_logo.png',
+    },
+}
+
+# Assume this is in your Django view or management command
+from your_app.services.email_utils import send_form_mail
+
+# You need a form_mail record in your database named 'conference_invitation'.
+form_mail_name = 'conference_invitation'
+
+# Call the function with all the prepared data.
+# The `request` and `user` parameters are for logging.
+history_log = send_form_mail(
+    request=request,
+    form_mail_name=form_mail_name,
+    context=context_data,
+    user=request.user,  # Pass the current user object
+)
+
+if history_log:
+    print(f"Email sent with status: {history_log.status}")
+else:
+    print("Email sending failed.")
+
+
+==============================================
+# JOINS
+            extra_params = {
+                'joins': [
+                    {
+                        'related_name': "fileinformation",
+                        'conditions': {
+                            'key': 'THONG_TIN_CHUNG',
+                            'value__icontains': request.query_params.get('join_information_file_value', '')
+                        }
+                    }
+                ]
+            }
+            queryset = add_extra_conditions_to_queryset(
+                queryset, extra_params)
+
+
+# JOINS
+            extra_params = {
+                'joins': [
+                    {
+                        "model_join": FileInformation,
+                        'conditions': {
+                            'key': 'THONG_TIN_CHUNG',
+                            'value__icontains': request.query_params.get('join_information_file_value', '')
+                        }
+                    }
+                ]
+            }
+            queryset = add_extra_conditions_to_queryset(
+                queryset, extra_params)
+
+
+==================================================================
+# 1. Define the input JSON string
+    input_json = json.dumps({"name": "John Doe", "id": 12345})
+
+    # 2. Define the configuration as a JSON string
+    config_data = {
+      "turns": 2,
+      "prefix": "[P]",
+      "suffix": "[S]",
+      "additions": [
+        {
+          "turn": 1,
+          "index": 10,
+          "type": "prefix"
+        },
+        {
+          "turn": 1,
+          "index": 20,
+          "type": "suffix"
+        },
+        {
+          "turn": 2,
+          "index": 5, # Note: This index is for the string after turn 1 encoding
+          "type": "prefix"
+        }
+      ]
+    }
+    config_json_string = json.dumps(config_data)
+
+    # 3. Call the function with the input and the config
+    encoded_output = encode_json_with_config(input_json, config_json_string)
+
+    # 4. Print the result
+    print("Original JSON:", input_json)
+    print("Encoded String:", encoded_output)

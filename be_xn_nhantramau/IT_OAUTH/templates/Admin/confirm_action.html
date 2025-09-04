@@ -1,0 +1,11 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+  <h1>Confirm Action</h1>
+  <form method="post">
+    {% csrf_token %}
+    <p>To proceed with the action, please enter your password:</p>
+    <input type="password" name="password" placeholder="Password" required>
+    <button type="submit">Confirm</button>
+  </form>
+  <a href="../">Cancel</a>
+{% endblock %}

@@ -1,0 +1,135 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Thống kê thanh toán</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <div class="container my-5">
+      <h2 class="mb-4 text-center">THỐNG KÊ THANH TOÁN HỘI NGHỊ</h2>
+
+      <div class="mb-5">
+        <canvas id="totalAmountChart" height="100"></canvas>
+      </div>
+
+      <div class="mb-5">
+        <canvas id="statusBreakdownChart" height="100"></canvas>
+      </div>
+
+      <div class="mb-5">
+        <canvas id="completedTypeChart" height="100"></canvas>
+      </div>
+    </div>
+
+    <script>
+      async function fetchDataAndRenderCharts() {
+        const response = await fetch("{% url 'api_payment_request_dashboard_stats' %}")
+        const json = await response.json()
+        const rawData = json.overall_stats
+      
+        const labels = []
+        const totalAmounts = []
+        const completedAmounts = []
+      
+        const statusKeys = ['COMPLETED', 'FAILED', 'PENDING', 'APPROVED', 'REJECTED', 'EXPIRED']
+        const statusDataMap = Object.fromEntries(statusKeys.map((k) => [k, []]))
+      
+        const typeKeys = ['PAYMENT_PERSONAL', 'PAYMENT_GROUP_EACH', 'PAYMENT_GROUP_REPRESENT_TOTAL']
+        const typeTotals = Object.fromEntries(typeKeys.map((k) => [k, 0]))
+      
+        for (const [code, entry] of Object.entries(rawData)) {
+          labels.push(entry.conference_name || code)
+          totalAmounts.push(entry.stats.total_amount_sum)
+          completedAmounts.push(entry.stats.total_amount_real_sum)
+      
+          statusKeys.forEach((key) => {
+            const count = entry.stats.status_breakdown[key]?.count || 0
+            statusDataMap[key].push(count)
+          })
+      
+          typeKeys.forEach((key) => {
+            const amount = entry.stats.completed_payments_breakdown[key] || 0
+            typeTotals[key] += amount
+          })
+        }
+      
+        new Chart(document.getElementById('totalAmountChart'), {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: 'Tổng tiền yêu cầu',
+                data: totalAmounts,
+                backgroundColor: 'rgba(255, 99, 132, 0.5)'
+              },
+              {
+                label: 'Tổng tiền hoàn thành',
+                data: completedAmounts,
+                backgroundColor: 'rgba(54, 162, 235, 0.5)'
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              title: { display: true, text: 'Tổng tiền theo hội nghị' }
+            },
+            scales: {
+              y: { beginAtZero: true }
+            }
+          }
+        })
+      
+        const statusDatasets = statusKeys.map((status, i) => ({
+          label: status,
+          data: statusDataMap[status],
+          backgroundColor: `hsl(${i * 60}, 70%, 60%)`
+        }))
+      
+        new Chart(document.getElementById('statusBreakdownChart'), {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: statusDatasets
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              title: { display: true, text: 'Trạng thái thanh toán theo hội nghị' }
+            },
+            scales: {
+              x: { stacked: true },
+              y: { stacked: true, beginAtZero: true }
+            }
+          }
+        })
+      
+        new Chart(document.getElementById('completedTypeChart'), {
+          type: 'pie',
+          data: {
+            labels: typeKeys,
+            datasets: [
+              {
+                data: typeKeys.map((k) => typeTotals[k]),
+                backgroundColor: ['#36A2EB', '#FFCE56', '#FF6384']
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              title: { display: true, text: 'Tổng tiền hoàn thành theo loại thanh toán' }
+            }
+          }
+        })
+      }
+      
+      fetchDataAndRenderCharts()
+    </script>
+  </body>
+</html>

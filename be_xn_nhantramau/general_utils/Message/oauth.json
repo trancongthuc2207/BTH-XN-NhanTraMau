@@ -1,0 +1,22 @@
+{
+    "FAIL_OAUTH_CONFIDENTIAL": {
+        "vn": "Mã bí mật ứng dụng không chính xác.",
+        "en": "The application secret code is incorrect."
+    },
+    "FAIL_OAUTH_CONFIDENTIAL_NOT_EXISTED": {
+        "vn": "ID ứng dụng không tồn tại hoặc đã bị vô hiệu hóa.",
+        "en": "The application secret code is incorrect."
+    },
+    "FAIL_OAUTH_CONFIDENTIAL_REQUIRED_PROVIDE": {
+        "vn": "Người dùng thường phải cung cấp ID ứng dụng và mã bí mật ứng dụng.",
+        "en": "Users are typically required to provide an app ID and app secret."
+    },
+    "FAIL_OAUTH_CONFIDENTIAL_NOT_CORRECTED": {
+        "vn": "Mã bí mật ứng dụng không chính xác.",
+        "en": "The application secret code is incorrect."
+    },
+    "FAIL_OAUTH_CONFIDENTIAL_NOT_EXSITED_OR_NOT_ACTIVED": {
+        "vn": "ID ứng dụng không tồn tại hoặc đã bị vô hiệu hóa.",
+        "en": "The app ID does not exist or has been disabled."
+    }
+}

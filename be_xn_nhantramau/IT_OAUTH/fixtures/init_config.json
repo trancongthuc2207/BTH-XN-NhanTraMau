@@ -1,0 +1,100 @@
+{
+    "configs_app": [
+        {
+            "name_config": "ACCESS_TOKEN_EXPIRE_SECONDS",
+            "value": "21600",
+            "status": true,
+            "description": "Thời gian hết hạn token",
+            "is_used": true,
+            "type_config": "ACCESS_TOKEN"
+        },
+        {
+            "name_config": "ACCESS_TOKEN_EXPIRE_REFRESH_SECONDS",
+            "value": "300",
+            "status": true,
+            "description": "Thời gian hết hạn refresh",
+            "is_used": true,
+            "type_config": "ACCESS_TOKEN"
+        },
+        {
+            "name_config": "KEY_AUTHORIZATION",
+            "value": "BTHONL",
+            "status": true,
+            "description": "Key của Authoriztion",
+            "is_used": true,
+            "type_config": "AUTHORIZATION"
+        },
+        {
+            "name_config": "USER_REDMAIL",
+            "value": "thuctc@bth.org.vn",
+            "status": true,
+            "description": "Tài khoản Redmail",
+            "is_used": true,
+            "type_config": "REDMAIL"
+        },
+        {
+            "name_config": "PASSWORD_REDMAIL",
+            "value": "VGh1Y0AwMTIz",
+            "status": true,
+            "description": "Mật khẩu Redmail",
+            "is_used": true,
+            "type_config": "REDMAIL"
+        },
+        {
+            "name_config": "ACTION_LOGIN",
+            "value": "ACTION_LOGIN",
+            "status": true,
+            "description": "Thực hiện gọi đăng nhập",
+            "is_used": true,
+            "type_config": "ACTION"
+        },
+        {
+            "name_config": "USERNAME_SEND_MAIL_DEFAULT",
+            "value": "thuctc@bth.org.vn",
+            "status": true,
+            "description": "Tên đăng nhập gửi mail mặc định",
+            "is_used": true,
+            "type_config": "MAIL_CONFIG_DEFAULT"
+        },
+        {
+            "name_config": "PASSWORD_SEND_MAIL_DEFAULT",
+            "value": "VGh1Y0AwMTIz",
+            "status": true,
+            "description": "Mật khẩu gửi mail mặc định",
+            "is_used": true,
+            "type_config": "MAIL_CONFIG_DEFAULT"
+        },
+        {
+            "name_config": "PREFIX_CHECK_FILE_DEFAULT",
+            "value": "pbkdf2_sha256$0e0ac3288f01261829d359a3b3c58dc2$",
+            "status": true,
+            "description": "Tiền tố mặc định",
+            "is_used": true,
+            "type_config": "PREFIX_CHECK_FILE_DEFAULT"
+        },
+        {
+            "name_config": "CONFIG_HASH_RESPONSE_TOKEN_DEFAULT",
+            "value": "{\"turns\":2,\"prefix\":\"[P]\",\"suffix\":\"[S]\",\"additions\":[{\"turn\":1,\"index\":10,\"type\":\"prefix\"},{\"turn\":1,\"index\":20,\"type\":\"suffix\"},{\"turn\":2,\"index\":5,\"type\":\"prefix\"}]}",
+            "status": true,
+            "description": "Đây là config mặc định của hash response token",
+            "is_used": true,
+            "type_config": "CONFIG_HASH_RESPONSE_TOKEN_DEFAULT"
+        },
+        {
+            "name_config": "LIST_URL_PATH_EXCEPT_RESPONSE_LOGGING",
+            "value": "*/swagger/*||*/static/*||*/media/*",
+            "status": true,
+            "description": "Đây là cấu hình ngoại trừ các api để không ghi log response",
+            "is_used": true,
+            "type_config": "EXCEPT_RESPONSE_LOGGING"
+        },
+        {
+            "name_config": "LIST_STATUS_CODE_RESPONSE_LOGGING",
+            "value": "200||301||302||400||403||404||500",
+            "status": true,
+            "description": "Đây là cấu hình các trạng thái code response đang được ghi log.",
+            "is_used": true,
+            "type_config": "RESPONSE_LOGGING"
+        }
+    ]
+}

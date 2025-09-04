@@ -1,0 +1,39 @@
+{
+    "users": [
+        {
+            "username": "admin",
+            "role_code": "admin",
+            "role_name": "Quản trị viên",
+            "email": "admin@example.com",
+            "is_superuser": 1
+        },
+        {
+            "username": "thuc",
+            "role_code": "admin",
+            "role_name": "Quản trị viên",
+            "email": "thuc@example.com",
+            "is_superuser": 1
+        },
+        {
+            "username": "hung",
+            "role_code": "admin",
+            "role_name": "Quản trị viên",
+            "email": "hung@example.com",
+            "is_superuser": 1
+        },
+        {
+            "username": "taichinh",
+            "role_code": "manager_taichinh",
+            "role_name": "Test",
+            "email": "taichinh@example.com",
+            "is_superuser": 0
+        },
+        {
+            "username": "thuky",
+            "role_code": "manager_thuky",
+            "role_name": "Test Thu Ky",
+            "email": "thuky@example.com",
+            "is_superuser": 0
+        }
+    ]
+}

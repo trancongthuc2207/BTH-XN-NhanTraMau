@@ -1,0 +1,26 @@
+{
+    "DEFAULT_SUCCESS_LAY_DU_LIEU": {
+        "vn": "Lấy dữ liệu thành công!",
+        "en": "Data fetched successfully!"
+    },
+    "DEFAULT_FAIL_DU_LIEU_KHONG_HOP_LE": {
+        "vn": "Dữ liệu không hợp lệ!",
+        "en": "Invalid data!"
+    },
+    "DEFAULT_FAIL_LOI_HE_THONG_TAO_DU_LIEU_CHUNG": {
+        "vn": "Tạo dữ liệu thất bại do lỗi hệ thống!",
+        "en": "Data creation failed due to system error!"
+    },
+    "DEFAULT_FAIL_LOI_HE_THONG_TAO_DU_LIEU_KEM_THEO_MESSAGE": {
+        "vn": "Tạo dữ liệu thất bại do lỗi hệ thống: '{message}'",
+        "en": "Data creation failed due to system error: '{message}'"
+    },
+    "DEFAULT_FAIL_LOI_HE_THONG": {
+        "vn": "Thao tác thất bại do lỗi hệ thống!",
+        "en": "Data creation failed due to system error!"
+    },
+    "DEFAULT_FAIL_LOI_HE_THONG_KEM_THEO_MESSAGE": {
+        "vn": "Thao tác thất bại do lỗi hệ thống: '{message}'",
+        "en": "Data creation failed due to system error: '{message}'"
+    }
+}

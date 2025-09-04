@@ -1,0 +1,30 @@
+[
+    {
+        "model": "IT_SOCKET_SYS.ConfigApp",
+        "pk": 1,
+        "fields": {
+            "name_config": "LIST_MODELS_EXCLUDE_NOTIFY_CHANGE",
+            "value": "ABC,DEF",
+            "status": true,
+            "description": "Đây là cấu hình để loại trừ các app model không cần thông báo thay đổi",
+            "is_used": true,
+            "type_config": "NOTIFY_CHANGE",
+            "created_date": "2025-08-19 12:00:00",
+            "updated_date": "2025-08-19 12:00:00"
+        }
+    },
+    {
+        "model": "IT_SOCKET_SYS.ConfigApp",
+        "pk": 2,
+        "fields": {
+            "name_config": "LIST_MODULES_NOTIFY_GENERAL",
+            "value": "SYS_GENERAL_HOMEPAGE,SYS_GENERAL_USERS,SYS_GENERAL_MESSAGE_ALL,SYS_GENERAL_ADMIN,SYS_GENERAL_MAIL",
+            "status": true,
+            "description": "Đây là cấu hình danh sách các Modules nhận thông báo!",
+            "is_used": true,
+            "type_config": "SYS_GENERAL_NOTIFY",
+            "created_date": "2025-08-19 12:00:00",
+            "updated_date": "2025-08-19 12:00:00"
+        }
+    }
+]

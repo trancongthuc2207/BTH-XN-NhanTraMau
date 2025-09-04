@@ -1,0 +1,16 @@
+[
+    {
+        "model": "IT_MailManager.ConfigApp",
+        "pk": 1,
+        "fields": {
+            "name_config": "MAXIMUM_FILE_DATA_FOR_UPLOAD_SEND_MAIL",
+            "value": "20",
+            "status": true,
+            "description": "Dung lượng tối đa của file khi gửi mail (MB)",
+            "is_used": true,
+            "type_config": "FILE_DATA_SEND_MAIL",
+            "created_date": "2025-08-19 12:00:00",
+            "updated_date": "2025-08-19 12:00:00"
+        }
+    }
+]

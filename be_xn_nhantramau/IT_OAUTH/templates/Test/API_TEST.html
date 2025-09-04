@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprehensive API Tester</title>
+    <!-- Use a simple, clean font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Load Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+    <div class="flex items-center justify-center min-h-screen p-6">
+        <div class="bg-white p-8 rounded-2xl shadow-xl border border-gray-200 w-full max-w-4xl">
+            <h1 class="text-3xl font-bold text-gray-800 text-center mb-6">Comprehensive API Tester</h1>
+            <p class="text-sm text-gray-600 text-center mb-8">
+                A robust tool to test various API endpoints with multiple methods and body types.
+            </p>
+
+            <!-- Base URL Input -->
+            <div class="mb-6">
+                <label for="baseUrl" class="block text-sm font-medium text-gray-700">Base API URL</label>
+                <input 
+                    type="url"
+                    id="baseUrl" 
+                    name="baseUrl" 
+                    placeholder="e.g., https://your-domain.com/api" 
+                    class="mt-1 block w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out"
+                >
+            </div>
+
+            <!-- Tabs/Sections for different request types -->
+            <div class="flex border-b border-gray-200 mb-6 overflow-x-auto">
+                <button 
+                    class="tab-btn px-4 py-2 text-sm font-medium text-blue-600 border-b-2 border-blue-600 focus:outline-none transition-colors duration-200 whitespace-nowrap"
+                    data-tab="get"
+                >
+                    GET
+                </button>
+                <button 
+                    class="tab-btn px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent focus:outline-none transition-colors duration-200 whitespace-nowrap"
+                    data-tab="post"
+                >
+                    POST
+                </button>
+                <button 
+                    class="tab-btn px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent focus:outline-none transition-colors duration-200 whitespace-nowrap"
+                    data-tab="put"
+                >
+                    PUT
+                </button>
+                <button 
+                    class="tab-btn px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent focus:outline-none transition-colors duration-200 whitespace-nowrap"
+                    data-tab="patch"
+                >
+                    PATCH
+                </button>
+                <button 
+                    class="tab-btn px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent focus:outline-none transition-colors duration-200 whitespace-nowrap"
+                    data-tab="delete"
+                >
+                    DELETE
+                </button>
+            </div>
+
+            <!-- Custom Headers Section -->
+            <div class="mb-6 border-b border-gray-200 pb-4">
+                <h2 class="text-lg font-semibold text-gray-800 mb-2">Custom Headers</h2>
+                <div id="headersContainer" class="space-y-2">
+                    <!-- Header fields will be dynamically added here -->
+                </div>
+                <button id="addHeaderBtn" type="button" class="mt-2 flex items-center px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors duration-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Add Header
+                </button>
+            </div>
+
+            <!-- Shared Request Body and Path Section -->
+            <div id="bodySection" class="space-y-4">
+                <!-- Relative Path Input -->
+                <div>
+                    <label for="requestPath" class="block text-sm font-medium text-gray-700">Relative Path</label>
+                    <input 
+                        type="text"
+                        id="requestPath" 
+                        name="requestPath" 
+                        placeholder="e.g., /items/123" 
+                        class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out"
+                    >
+                </div>
+
+                <!-- Request Body Type Selector -->
+                <div id="bodyTypeSelector" class="flex items-center space-x-4 mb-4 hidden">
+                    <span class="text-sm font-medium text-gray-700">Body Type:</span>
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="requestBodyType" value="json" class="form-radio text-blue-600" checked>
+                        <span class="ml-2 text-sm text-gray-700">JSON</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="requestBodyType" value="formData" class="form-radio text-blue-600">
+                        <span class="ml-2 text-sm text-gray-700">Form-Data</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="requestBodyType" value="raw" class="form-radio text-blue-600">
+                        <span class="ml-2 text-sm text-gray-700">Raw</span>
+                    </label>
+                </div>
+
+                <!-- Request Body Input Areas (Dynamically shown/hidden) -->
+                <div id="jsonBodyWrapper" class="space-y-4 hidden">
+                    <label for="requestBody" class="block text-sm font-medium text-gray-700">Request Body (JSON)</label>
+                    <textarea 
+                        id="requestBody" 
+                        name="requestBody" 
+                        rows="6" 
+                        placeholder="e.g., {&#10;  &quot;name&quot;: &quot;John Doe&quot;,&#10;  &quot;email&quot;: &quot;john.doe@example.com&quot;&#10;}" 
+                        class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out font-mono text-xs"
+                    ></textarea>
+                </div>
+                
+                <div id="formDataWrapper" class="space-y-2 hidden">
+                    <h3 class="text-sm font-medium text-gray-700">Form-Data Fields</h3>
+                    <div id="formDataFields" class="space-y-3">
+                        <!-- Form-data fields will be dynamically added here -->
+                    </div>
+                    <button id="addFormFieldBtn" type="button" class="w-full flex justify-center py-2 px-4 border border-dashed border-gray-300 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 transition duration-150 ease-in-out">
+                        + Add Field
+                    </button>
+                </div>
+                
+                <div id="rawBodyWrapper" class="space-y-4 hidden">
+                    <label for="rawBody" class="block text-sm font-medium text-gray-700">Request Body (Raw)</label>
+                    <textarea 
+                        id="rawBody" 
+                        name="rawBody" 
+                        rows="6" 
+                        placeholder="e.g., <user><name>John Doe</name></user>" 
+                        class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out font-mono text-xs"
+                    ></textarea>
+                </div>
+            </div>
+
+            <!-- Specific Request Sections -->
+            <!-- GET Section -->
+            <div id="get" class="tab-content active space-y-4">
+                <button 
+                    id="sendGetBtn"
+                    class="w-full mt-4 flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                    Send GET Request
+                </button>
+            </div>
+            <!-- POST, PUT, PATCH sections share the same body and button logic, they just have a different method -->
+            <div id="post" class="tab-content hidden space-y-4">
+                 <button 
+                    id="sendPostBtn"
+                    class="w-full mt-4 flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                    Send POST Request
+                </button>
+            </div>
+            <div id="put" class="tab-content hidden space-y-4">
+                 <button 
+                    id="sendPutBtn"
+                    class="w-full mt-4 flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                    Send PUT Request
+                </button>
+            </div>
+            <div id="patch" class="tab-content hidden space-y-4">
+                 <button 
+                    id="sendPatchBtn"
+                    class="w-full mt-4 flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                    Send PATCH Request
+                </button>
+            </div>
+            <div id="delete" class="tab-content hidden space-y-4">
+                 <button 
+                    id="sendDeleteBtn"
+                    class="w-full mt-4 flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                    Send DELETE Request
+                </button>
+            </div>
+
+            <!-- Response Output Section -->
+            <div class="mt-8 space-y-4">
+                <h2 class="text-xl font-bold text-gray-800">Response</h2>
+                <div class="bg-gray-100 p-6 rounded-lg border border-gray-200">
+                    <div id="responseStatus" class="text-lg font-semibold mb-2"></div>
+                    <pre id="responseBody" class="bg-gray-200 text-gray-800 p-4 rounded-md text-xs"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.onload = function() {
+            // --- DOM Elements ---
+            const baseUrlInput = document.getElementById('baseUrl');
+            const tabs = document.querySelectorAll('.tab-btn');
+            const contents = document.querySelectorAll('.tab-content');
+            const bodySection = document.getElementById('bodySection');
+            const requestPathInput = document.getElementById('requestPath');
+            const bodyTypeSelector = document.getElementById('bodyTypeSelector');
+            const requestBodyTypeRadios = document.querySelectorAll('input[name="requestBodyType"]');
+            const jsonBodyWrapper = document.getElementById('jsonBodyWrapper');
+            const formDataWrapper = document.getElementById('formDataWrapper');
+            const rawBodyWrapper = document.getElementById('rawBodyWrapper');
+            const requestBodyInput = document.getElementById('requestBody');
+            const rawBodyInput = document.getElementById('rawBody');
+            const sendGetBtn = document.getElementById('sendGetBtn');
+            const sendPostBtn = document.getElementById('sendPostBtn');
+            const sendPutBtn = document.getElementById('sendPutBtn');
+            const sendPatchBtn = document.getElementById('sendPatchBtn');
+            const sendDeleteBtn = document.getElementById('sendDeleteBtn');
+            const fileDownloadPathInput = document.getElementById('fileDownloadPath');
+            const fileIdsInput = document.getElementById('fileIds');
+            const downloadFilesBtn = document.getElementById('downloadFilesBtn');
+            const responseStatus = document.getElementById('responseStatus');
+            const responseBody = document.getElementById('responseBody');
+            const addFormFieldBtn = document.getElementById('addFormFieldBtn');
+            const formDataFields = document.getElementById('formDataFields');
+            const addHeaderBtn = document.getElementById('addHeaderBtn');
+            const headersContainer = document.getElementById('headersContainer');
+
+            // --- UI Logic ---
+            
+            // Switch tabs and manage UI visibility
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // Deactivate all tabs and contents
+                    tabs.forEach(t => {
+                        t.classList.remove('border-blue-600', 'text-blue-600');
+                        t.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700');
+                    });
+                    contents.forEach(c => c.classList.add('hidden'));
+
+                    // Activate the clicked tab and corresponding content
+                    const tabId = tab.dataset.tab;
+                    tab.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700');
+                    tab.classList.add('border-blue-600', 'text-blue-600');
+                    document.getElementById(tabId).classList.remove('hidden');
+
+                    // Show/hide body section based on method
+                    const methodsWithBody = ['post', 'put', 'patch'];
+                    if (methodsWithBody.includes(tabId)) {
+                        bodySection.classList.remove('hidden');
+                        bodyTypeSelector.classList.remove('hidden');
+                        // Show the current body type wrapper based on the radio selection
+                        updateBodyInputDisplay();
+                    } else if (tabId === 'get' || tabId === 'delete') {
+                        bodySection.classList.remove('hidden');
+                        bodyTypeSelector.classList.add('hidden');
+                        jsonBodyWrapper.classList.add('hidden');
+                        formDataWrapper.classList.add('hidden');
+                        rawBodyWrapper.classList.add('hidden');
+                    } else { // fileDownload tab
+                        bodySection.classList.add('hidden');
+                    }
+
+                    // Clear previous responses
+                    responseStatus.textContent = '';
+                    responseBody.textContent = '';
+                });
+            });
+
+            // Update body input display based on radio selection
+            function updateBodyInputDisplay() {
+                const selectedBodyType = document.querySelector('input[name="requestBodyType"]:checked').value;
+                jsonBodyWrapper.classList.add('hidden');
+                formDataWrapper.classList.add('hidden');
+                rawBodyWrapper.classList.add('hidden');
+                if (selectedBodyType === 'json') {
+                    jsonBodyWrapper.classList.remove('hidden');
+                } else if (selectedBodyType === 'formData') {
+                    formDataWrapper.classList.remove('hidden');
+                } else if (selectedBodyType === 'raw') {
+                    rawBodyWrapper.classList.remove('hidden');
+                }
+            }
+
+            // Switch between body input types
+            requestBodyTypeRadios.forEach(radio => {
+                radio.addEventListener('change', updateBodyInputDisplay);
+            });
+
+            // Dynamically add a new form-data field row
+            function addFormFieldRow() {
+                const fieldRow = document.createElement('div');
+                fieldRow.className = 'flex items-center space-x-2';
+                fieldRow.innerHTML = `
+                    <input type="text" placeholder="Key" class="w-1/3 px-2 py-1 border border-gray-300 rounded-md text-sm">
+                    <input type="text" placeholder="Value" class="w-1/3 px-2 py-1 border border-gray-300 rounded-md text-sm">
+                    <input type="file" class="w-1/3 px-2 py-1 text-sm">
+                    <button type="button" class="remove-field-btn text-red-500 hover:text-red-700 transition-colors duration-200 text-xs">Remove</button>
+                `;
+                formDataFields.appendChild(fieldRow);
+                
+                // Add listener to the new "Remove" button
+                fieldRow.querySelector('.remove-field-btn').addEventListener('click', () => {
+                    formDataFields.removeChild(fieldRow);
+                });
+            }
+
+            addFormFieldBtn.addEventListener('click', addFormFieldRow);
+            addFormFieldRow(); // Add initial field on load
+            
+            // Dynamically add a new header field row
+            function addHeaderRow() {
+                const headerRow = document.createElement('div');
+                headerRow.className = 'flex items-center space-x-2';
+                headerRow.innerHTML = `
+                    <input type="text" placeholder="Header Key (e.g., Authorization)" class="w-1/2 px-2 py-1 border border-gray-300 rounded-md text-sm">
+                    <input type="text" placeholder="Header Value (e.g., Bearer token)" class="w-1/2 px-2 py-1 border border-gray-300 rounded-md text-sm">
+                    <button type="button" class="remove-header-btn text-red-500 hover:text-red-700 transition-colors duration-200 text-xs">Remove</button>
+                `;
+                headersContainer.appendChild(headerRow);
+                
+                // Add listener to the new "Remove" button
+                headerRow.querySelector('.remove-header-btn').addEventListener('click', () => {
+                    headersContainer.removeChild(headerRow);
+                });
+            }
+            
+            addHeaderBtn.addEventListener('click', addHeaderRow);
+            // Add a default Authorization header for demonstration
+            addHeaderRow();
+            headersContainer.children[0].children[0].value = 'Authorization';
+            headersContainer.children[0].children[1].placeholder = 'Bearer your-token-here';
+
+            // --- API Request Logic ---
+            
+            // Helper function to get all custom headers from the UI
+            function getCustomHeaders() {
+                const headers = {};
+                const headerRows = headersContainer.children;
+                for (let row of headerRows) {
+                    const keyInput = row.children[0];
+                    const valueInput = row.children[1];
+                    if (keyInput.value.trim() && valueInput.value.trim()) {
+                        headers[keyInput.value.trim()] = valueInput.value.trim();
+                    }
+                }
+                return headers;
+            }
+
+            // General function to perform an API request
+            async function sendRequest(path, method, body, button, customHeaders, isFileDownload = false) {
+                const baseUrl = baseUrlInput.value.trim();
+                if (!baseUrl) {
+                    displayResponse('Error', 'Please enter a base API URL.', 'error');
+                    return;
+                }
+                const url = `${baseUrl}${path}`;
+
+                // Disable button and show loading state
+                button.disabled = true;
+                const originalText = button.innerHTML;
+                button.innerHTML = `
+                    <svg class="animate-spin h-5 w-5 text-white mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Processing...
+                `;
+                
+                // Clear previous response
+                responseStatus.textContent = '';
+                responseBody.textContent = '';
+                
+                const options = { method, body };
+                
+                // Set headers, avoiding Content-Type for FormData
+                if (!(body instanceof FormData)) {
+                    options.headers = customHeaders;
+                }
+                
+                try {
+                    const response = await fetch(url, options);
+
+                    if (response.ok) {
+                        if (isFileDownload || (response.headers.get('Content-Type') && !response.headers.get('Content-Type').includes('application/json'))) {
+                            // Handle file download or non-JSON response
+                            const blob = await response.blob();
+                            const downloadUrl = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.style.display = 'none';
+                            a.href = downloadUrl;
+                            const disposition = response.headers.get('Content-Disposition');
+                            let filename = 'download.zip';
+                            if (disposition && disposition.indexOf('attachment') !== -1) {
+                                const matches = /filename="([^"]*)"/.exec(disposition);
+                                if (matches != null && matches[1]) filename = matches[1];
+                            }
+                            a.download = filename;
+                            document.body.appendChild(a);
+                            a.click();
+                            window.URL.revokeObjectURL(downloadUrl);
+                            displayResponse(`Status: ${response.status} OK`, 'File downloaded successfully!', 'success');
+                        } else {
+                            // Handle JSON response
+                            const data = await response.json();
+                            displayResponse(`Status: ${response.status} OK`, JSON.stringify(data, null, 2), 'success');
+                        }
+                    } else {
+                        // Handle server-side errors
+                        const errorData = await response.json();
+                        displayResponse(`Status: ${response.status} ${response.statusText}`, JSON.stringify(errorData, null, 2), 'error');
+                    }
+                } catch (error) {
+                    // Handle network or parsing errors
+                    displayResponse('Network Error', error.message, 'error');
+                } finally {
+                    // Re-enable button and reset text
+                    button.disabled = false;
+                    button.innerHTML = originalText;
+                }
+            }
+
+            // Helper function to display the response
+            function displayResponse(status, body, type) {
+                responseStatus.textContent = status;
+                responseBody.textContent = body;
+                if (type === 'success') {
+                    responseStatus.classList.remove('text-red-600');
+                    responseStatus.classList.add('text-green-600');
+                } else if (type === 'error') {
+                    responseStatus.classList.remove('text-green-600');
+                    responseStatus.classList.add('text-red-600');
+                }
+            }
+
+            // --- Event Listeners for buttons ---
+
+            // GET Button
+            sendGetBtn.addEventListener('click', () => {
+                const path = requestPathInput.value.trim();
+                const headers = getCustomHeaders();
+                sendRequest(path, 'GET', null, sendGetBtn, headers);
+            });
+
+            // POST, PUT, PATCH, DELETE share the same logic for body and headers
+            function sendMethodRequest(method, button) {
+                const path = requestPathInput.value.trim();
+                let body = null;
+                const headers = getCustomHeaders();
+                const selectedBodyType = document.querySelector('input[name="requestBodyType"]:checked').value;
+                
+                if (method !== 'GET' && method !== 'DELETE') {
+                    if (selectedBodyType === 'json') {
+                        try {
+                            body = requestBodyInput.value.trim() ? JSON.stringify(JSON.parse(requestBodyInput.value)) : '{}';
+                            headers['Content-Type'] = 'application/json';
+                        } catch (e) {
+                            displayResponse('JSON Error', 'The request body is not valid JSON.', 'error');
+                            return;
+                        }
+                    } else if (selectedBodyType === 'formData') {
+                        body = new FormData();
+                        const fieldRows = formDataFields.children;
+                        for (let row of fieldRows) {
+                            const keyInput = row.children[0];
+                            const valueInput = row.children[1];
+                            const fileInput = row.children[2];
+                            
+                            if (fileInput.files.length > 0) {
+                                body.append(keyInput.value, fileInput.files[0], fileInput.files[0].name);
+                            } else if (keyInput.value.trim() && valueInput.value.trim()) {
+                                body.append(keyInput.value, valueInput.value);
+                            }
+                        }
+                    } else if (selectedBodyType === 'raw') {
+                        body = rawBodyInput.value;
+                        // For raw body, we assume the user will set the correct Content-Type in headers
+                        if (!headers['Content-Type']) {
+                             headers['Content-Type'] = 'text/plain'; // default to text/plain
+                        }
+                    }
+                }
+                
+                sendRequest(path, method, body, button, headers);
+            }
+
+            // Event listeners for new buttons
+            sendPostBtn.addEventListener('click', () => sendMethodRequest('POST', sendPostBtn));
+            sendPutBtn.addEventListener('click', () => sendMethodRequest('PUT', sendPutBtn));
+            sendPatchBtn.addEventListener('click', () => sendMethodRequest('PATCH', sendPatchBtn));
+            sendDeleteBtn.addEventListener('click', () => sendMethodRequest('DELETE', sendDeleteBtn));
+
+            // Initial UI setup
+            document.querySelector('.tab-btn[data-tab="get"]').click();
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,407 @@
+[
+    {
+        "model": "IT_OAUTH.department",
+        "fields": {
+            "code": "KKB",
+            "name": "Khoa Khám Bệnh",
+            "created_date": "2023-10-01 12:00:00",
+            "updated_date": "2023-10-01 12:00:00"
+        }
+    },
+    {
+        "model": "IT_OAUTH.department",
+        "fields": {
+            "code": "TNHM",
+            "name": "Khoa Tiếp Nhận Hiến Máu",
+            "created_date": "2023-10-01 12:00:00",
+            "updated_date": "2023-10-01 12:00:00"
+        }
+    },
+    {
+        "model": "IT_OAUTH.department",
+        "fields": {
+            "code": "KD",
+            "name": "Khoa Dược",
+            "created_date": "2023-10-01 12:00:00",
+            "updated_date": "2023-10-01 12:00:00"
+        }
+    },
+    {
+        "model": "IT_OAUTH.department",
+        "fields": {
+            "code": "HHNL3",
+            "name": "Khoa Huyết Học Người Lớn 3",
+            "created_date": "2023-10-01 12:00:00",
+            "updated_date": "2023-10-01 12:00:00"
+        }
+    },
+    {
+        "model": "IT_OAUTH.department",
+        "fields": {
+            "code": "HHTE1",
+            "name": "Khoa Huyết Học Trẻ Em 1",
+            "created_date": "2023-10-01 12:00:00",
+            "updated_date": "2023-10-01 12:00:00"
+        }
+    },
+    {
+        "model": "IT_OAUTH.department",
+        "fields": {
+            "code": "HHNL2",
+            "name": "Khoa Huyết Học Người Lớn 2",
+            "created_date": "2023-10-01 12:00:00",
+            "updated_date": "2023-10-01 12:00:00"
+        }
+    },
+    {
+        "model": "IT_OAUTH.department",
+        "fields": {
+            "code": "HHCC",
+            "name": "Khoa Cấp Cứu",
+            "created_date": "2023-10-01 12:00:00",
+            "updated_date": "2023-10-01 12:00:00"
+        }
+    },
+    {
+        "model": "IT_OAUTH.department",
+        "fields": {
+            "code": "GTBG",
+            "name": "Khoa Ghép Tế Bào Gốc",
+            "created_date": "2023-10-01 12:00:00",
+            "updated_date": "2023-10-01 12:00:00"
+        }
+    },
+    {
+        "model": "IT_OAUTH.department",
+        "fields": {
+            "code": "HHNL1",
+            "name": "Khoa Huyết Học Người Lớn 1",
+            "created_date": "2023-10-01 12:00:00",
+            "updated_date": "2023-10-01 12:00:00"
+        }
+    },
+    {
+        "model": "IT_OAUTH.department",
+        "fields": {
+            "code": "MD",
+            "name": "Khoa Miễn Dịch",
+            "created_date": "2023-10-01 12:00:00",
+            "updated_date": "2023-10-01 12:00:00"
+        }
+    },
+    {
+        "model": "IT_OAUTH.department",
+        "fields": {
+            "code": "GPB",
+            "name": "Khoa Giải Phẫu Bệnh",
+            "created_date": "2023-10-01 12:00:00",
+            "updated_date": "2023-10-01 12:00:00"
+        }
+    },
+    {
+        "model": "IT_OAUTH.department",
+        "fields": {
+            "code": "SLM",
+            "name": "Khoa Sàng Lọc Máu",
+            "created_date": "2023-10-01 12:00:00",
+            "updated_date": "2023-10-01 12:00:00"
+        }
+    },
+    {
+        "model": "IT_OAUTH.department",
+        "fields": {
+            "code": "DTHPT",
+            "name": "Khoa Di Truyền Học Phân Tử",
+            "created_date": "2023-10-01 12:00:00",
+            "updated_date": "2023-10-01 12:00:00"
+        }
+    },
+    {
+        "model": "IT_OAUTH.department",
+        "fields": {
+            "code": "DCCPM",
+            "name": "Khoa Điều Chế Cấp Phát Máu",
+            "created_date": "2023-10-01 12:00:00",
+            "updated_date": "2023-10-01 12:00:00"
+        }
+    },
+    {
+        "model": "IT_OAUTH.department",
+        "fields": {
+            "code": "HHTE2",
+            "name": "Khoa Huyết Học Trẻ Em 2",
+            "created_date": "2023-10-01 12:00:00",
+            "updated_date": "2023-10-01 12:00:00"
+        }
+    },
+    {
+        "model": "IT_OAUTH.department",
+        "fields": {
+            "code": "TTCT",
+            "name": "BP. Thủ Thuật Chiết Tách",
+            "created_date": "2023-10-01 12:00:00",
+            "updated_date": "2023-10-01 12:00:00"
+        }
+    },
+    {
+        "model": "IT_OAUTH.department",
+        "fields": {
+            "code": "HHTCCD",
+            "name": "Hồi Sức Tích Cực - Chống Độc",
+            "created_date": "2023-10-01 12:00:00",
+            "updated_date": "2023-10-01 12:00:00"
+        }
+    },
+    {
+        "model": "IT_OAUTH.department",
+        "fields": {
+            "code": "DTBN",
+            "name": "Điều trị ban ngày - ngoại trú",
+            "created_date": "2023-10-01 12:00:00",
+            "updated_date": "2023-10-01 12:00:00"
+        }
+    },
+    {
+        "model": "IT_OAUTH.department",
+        "fields": {
+            "code": "HHTH",
+            "name": "Khoa Điều Trị Tổng Hợp",
+            "created_date": "2023-10-01 12:00:00",
+            "updated_date": "2023-10-01 12:00:00"
+        }
+    },
+    {
+        "model": "IT_OAUTH.department",
+        "fields": {
+            "code": "CDHA",
+            "name": "Khoa Chẩn Đoán Hình Ảnh",
+            "created_date": "2023-10-01 12:00:00",
+            "updated_date": "2023-10-01 12:00:00"
+        }
+    },
+    {
+        "model": "IT_OAUTH.department",
+        "fields": {
+            "code": "HCQT",
+            "name": "Phòng Hành Chính Quản Trị",
+            "created_date": "2023-10-01 12:00:00",
+            "updated_date": "2023-10-01 12:00:00"
+        }
+    },
+    {
+        "model": "IT_OAUTH.department",
+        "fields": {
+            "code": "BGD",
+            "name": "Ban Giám Đốc",
+            "created_date": "2023-10-01 12:00:00",
+            "updated_date": "2023-10-01 12:00:00"
+        }
+    },
+    {
+        "model": "IT_OAUTH.department",
+        "fields": {
+            "code": "BPHC",
+            "name": "Bộ phận Hành chính",
+            "created_date": "2023-10-01 12:00:00",
+            "updated_date": "2023-10-01 12:00:00"
+        }
+    },
+    {
+        "model": "IT_OAUTH.department",
+        "fields": {
+            "code": "CTXH",
+            "name": "Phòng Công Tác Xã Hội",
+            "created_date": "2023-10-01 12:00:00",
+            "updated_date": "2023-10-01 12:00:00"
+        }
+    },
+    {
+        "model": "IT_OAUTH.department",
+        "fields": {
+            "code": "TCCB",
+            "name": "Phòng Tổ Chức Cán Bộ",
+            "created_date": "2023-10-01 12:00:00",
+            "updated_date": "2023-10-01 12:00:00"
+        }
+    },
+    {
+        "model": "IT_OAUTH.department",
+        "fields": {
+            "code": "TCKT",
+            "name": "Phòng Tài Chính Kế Toán",
+            "created_date": "2023-10-01 12:00:00",
+            "updated_date": "2023-10-01 12:00:00"
+        }
+    },
+    {
+        "model": "IT_OAUTH.department",
+        "fields": {
+            "code": "CDT",
+            "name": "Phòng Điều Dưỡng",
+            "created_date": "2023-10-01 12:00:00",
+            "updated_date": "2023-10-01 12:00:00"
+        }
+    },
+    {
+        "model": "IT_OAUTH.department",
+        "fields": {
+            "code": "VTTBYT",
+            "name": "Phòng Vật Tư Thiết Bị Y Tế",
+            "created_date": "2023-10-01 12:00:00",
+            "updated_date": "2023-10-01 12:00:00"
+        }
+    },
+    {
+        "model": "IT_OAUTH.department",
+        "fields": {
+            "code": "CNTT",
+            "name": "Phòng Công Nghệ Thông Tin",
+            "created_date": "2023-10-01 12:00:00",
+            "updated_date": "2023-10-01 12:00:00"
+        }
+    },
+    {
+        "model": "IT_OAUTH.department",
+        "fields": {
+            "code": "KSNK",
+            "name": "Khoa Kiểm Soát Nhiễm Khuẩn",
+            "created_date": "2023-10-01 12:00:00",
+            "updated_date": "2023-10-01 12:00:00"
+        }
+    },
+    {
+        "model": "IT_OAUTH.department",
+        "fields": {
+            "code": "KHTH",
+            "name": "Phòng Kế Hoạch Tổng Hợp",
+            "created_date": "2023-10-01 12:00:00",
+            "updated_date": "2023-10-01 12:00:00"
+        }
+    },
+    {
+        "model": "IT_OAUTH.department",
+        "fields": {
+            "code": "QLCL",
+            "name": "Phòng Quản Lý Chất Lượng",
+            "created_date": "2023-10-01 12:00:00",
+            "updated_date": "2023-10-01 12:00:00"
+        }
+    },
+    {
+        "model": "IT_OAUTH.department",
+        "fields": {
+            "code": "HSH",
+            "name": "Khoa Huyết Sinh Học",
+            "created_date": "2023-10-01 12:00:00",
+            "updated_date": "2023-10-01 12:00:00"
+        }
+    },
+    {
+        "model": "IT_OAUTH.department",
+        "fields": {
+            "code": "XNVS",
+            "name": "Khoa Vi Sinh",
+            "created_date": "2023-10-01 12:00:00",
+            "updated_date": "2023-10-01 12:00:00"
+        }
+    },
+    {
+        "model": "IT_OAUTH.department",
+        "fields": {
+            "code": "DDTC",
+            "name": "Dinh Dưỡng Tiết Chế",
+            "created_date": "2023-10-01 12:00:00",
+            "updated_date": "2023-10-01 12:00:00"
+        }
+    },
+    {
+        "model": "IT_OAUTH.department",
+        "fields": {
+            "code": "NHTBG",
+            "name": "Ngân hàng tế bào gốc",
+            "created_date": "2023-10-01 12:00:00",
+            "updated_date": "2023-10-01 12:00:00"
+        }
+    },
+    {
+        "model": "IT_OAUTH.department",
+        "fields": {
+            "code": "KHHMTC",
+            "name": "Khoa Hòa Hợp Mô Tổ Chức",
+            "created_date": "2023-10-01 12:00:00",
+            "updated_date": "2023-10-01 12:00:00"
+        }
+    },
+    {
+        "model": "IT_OAUTH.department",
+        "fields": {
+            "code": "XN_Medic",
+            "name": "Xét Nghiệm Gửi Medic",
+            "created_date": "2023-10-01 12:00:00",
+            "updated_date": "2023-10-01 12:00:00"
+        }
+    },
+    {
+        "model": "IT_OAUTH.department",
+        "fields": {
+            "code": "Jupiter",
+            "name": "Phòng Dịch Vụ Jupiter",
+            "created_date": "2023-10-01 12:00:00",
+            "updated_date": "2023-10-01 12:00:00"
+        }
+    },
+    {
+        "model": "IT_OAUTH.department",
+        "fields": {
+            "code": "NCKH_DV",
+            "name": "Phòng Dịch Vụ NCKH",
+            "created_date": "2023-10-01 12:00:00",
+            "updated_date": "2023-10-01 12:00:00"
+        }
+    },
+    {
+        "model": "IT_OAUTH.department",
+        "fields": {
+            "code": "TN",
+            "name": "Tiếp nhận",
+            "created_date": "2023-10-01 12:00:00",
+            "updated_date": "2023-10-01 12:00:00"
+        }
+    },
+    {
+        "model": "IT_OAUTH.department",
+        "fields": {
+            "code": "XNGN",
+            "name": "XÉT NGHIỆM GỬI NGOÀI",
+            "created_date": "2023-10-01 12:00:00",
+            "updated_date": "2023-10-01 12:00:00"
+        }
+    },
+    {
+        "model": "IT_OAUTH.department",
+        "fields": {
+            "code": "NGTM",
+            "name": "P.NHẬN Gửi TRUYỀN MÁU",
+            "created_date": "2023-10-01 12:00:00",
+            "updated_date": "2023-10-01 12:00:00"
+        }
+    },
+    {
+        "model": "IT_OAUTH.department",
+        "fields": {
+            "code": "PKTT",
+            "name": "Phòng khám Thủ thuật",
+            "created_date": "2023-10-01 12:00:00",
+            "updated_date": "2023-10-01 12:00:00"
+        }
+    },
+    {
+        "model": "IT_OAUTH.department",
+        "fields": {
+            "code": "DTNTPKTT",
+            "name": "Điều trị ngoại trú - Thủ thuật",
+            "created_date": "2023-10-01 12:00:00",
+            "updated_date": "2023-10-01 12:00:00"
+        }
+    }
+]

@@ -1,0 +1,26 @@
+<!-- templates/admin/send_mail_form.html -->
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div style="display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; padding-top: 20px;">
+    <div style="width: 400px; text-align: left; border: 1px solid #ccc; border-radius: 5px; padding: 20px; font-size: 18px;">  <!-- Increase font size here -->
+        <h1 style="text-align: center;">Send Mail</h1>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <button type="button" id="check-all" style="margin-bottom: 10px;">Check All</button>  <!-- Check All button -->
+            {{ form.as_p }}  <!-- This will include the subject field with the default value -->
+            <button type="submit">Send Mail</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.getElementById('check-all').addEventListener('click', function() {
+        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = !allChecked;  // Toggle the checked state
+        });
+    });
+</script>
+{% endblock %}

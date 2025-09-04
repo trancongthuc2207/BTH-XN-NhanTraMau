@@ -1,0 +1,11 @@
+{% extends "admin/change_list.html" %}
+
+{% block content %}
+    <form method="get" action=".">
+        <div class="filters">
+            <input type="text" name="username" placeholder="Filter by username" value="{{ request.GET.username }}">
+            <button type="submit">Filter</button>
+        </div>
+    </form>
+    {{ block.super }}
+{% endblock %}

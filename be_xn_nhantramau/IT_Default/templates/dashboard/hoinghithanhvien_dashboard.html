@@ -1,0 +1,169 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Thống kê thành viên hội nghị</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      .chart-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+      }
+      .chart-box {
+        flex: 1 1 45%;
+        min-width: 300px;
+      }
+      hr {
+        margin-top: 3rem;
+        margin-bottom: 2rem;
+        border-color: #ddd;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container my-5">
+      <h2 class="text-center mb-4">THỐNG KÊ THÀNH VIÊN HỘI NGHỊ</h2>
+
+      <!-- Tổng hợp -->
+      <div class="mb-5">
+        <h4 class="text-primary mb-3">TỔNG HỢP</h4>
+        <div class="chart-row">
+          <div class="chart-box">
+            <canvas id="giftChart"></canvas>
+          </div>
+          <div class="chart-box">
+            <canvas id="emailChart"></canvas>
+          </div>
+          <div class="chart-box">
+            <canvas id="certChart"></canvas>
+          </div>
+          <div class="chart-box">
+            <canvas id="orgChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <hr />
+
+      <!-- Hội nghị riêng -->
+      <div id="conference-charts" class="mt-5"></div>
+    </div>
+
+    <script>
+  async function fetchMemberStats() {
+    const response = await fetch("{% url 'api_hoinghi_thanhvien_dashboard_stats' %}");
+    const data = await response.json();
+    const stats = data.overall_stats;
+    const container = document.getElementById("conference-charts");
+
+    // --- Tổng hợp ---
+    let gift = { HAS_GIFT: 0, NO_GIFT: 0 };
+    let email = { SENT: 0, NOT_SENT: 0 };
+    let cert = { SENT: 0, NOT_SENT: 0 };
+    const orgMap = {};
+    let totalMembers = 0;
+
+    for (const key in stats) {
+      const s = stats[key].stats;
+
+      totalMembers += s?.total_registered_members || 0;
+
+      gift.HAS_GIFT += s.gift_status_breakdown?.HAS_GIFT || 0;
+      gift.NO_GIFT += s.gift_status_breakdown?.NO_GIFT || 0;
+
+      email.SENT += s.email_send_breakdown?.SENT || 0;
+      email.NOT_SENT += s.email_send_breakdown?.NOT_SENT || 0;
+
+      cert.SENT += s.cert_send_breakdown?.SENT || 0;
+      cert.NOT_SENT += s.cert_send_breakdown?.NOT_SENT || 0;
+
+      for (const [org, count] of Object.entries(s.donvi_breakdown || {})) {
+        orgMap[org] = (orgMap[org] || 0) + count;
+      }
+    }
+
+    renderPieChart("giftChart", ['Có quà', 'Không có quà'], [gift.HAS_GIFT, gift.NO_GIFT], ['#4CAF50', '#FF5722'], 'Trạng thái nhận quà (Tổng hợp)');
+    renderBarChart("emailChart", ['Đã gửi', 'Chưa gửi'], [email.SENT, email.NOT_SENT], ['#2196F3', '#9E9E9E'], 'Trạng thái gửi Email (Tổng hợp)');
+    renderBarChart("certChart", ['Đã gửi', 'Chưa gửi'], [cert.SENT, cert.NOT_SENT], ['#673AB7', '#E0E0E0'], 'Trạng thái gửi chứng nhận (Tổng hợp)');
+    renderBarChart("orgChart", Object.keys(orgMap), Object.values(orgMap), '#FF9800', 'Thành viên theo đơn vị (Tổng hợp)');
+
+    // --- Theo từng hội nghị ---
+    Object.entries(stats).forEach(([code, conf]) => {
+      const confName = conf.conference_name;
+      const s = conf.stats || {};
+      const gift = s.gift_status_breakdown || { HAS_GIFT: 0, NO_GIFT: 0 };
+      const email = s.email_send_breakdown || { SENT: 0, NOT_SENT: 0 };
+      const cert = s.cert_send_breakdown || { SENT: 0, NOT_SENT: 0 };
+      const orgs = s.donvi_breakdown || {};
+      const total = s.total_registered_members || 0;
+
+      const idPrefix = code.replace(/\W/g, "_");
+      const section = document.createElement("div");
+      section.classList.add("mb-5");
+
+      section.innerHTML = `
+        <h5 class="text-success mb-1">${confName} (${code})</h5>
+        <p class="text-muted mb-3">Số thành viên đăng ký: <strong>${total.toLocaleString()}</strong></p>
+        <div class="chart-row">
+          <div class="chart-box"><canvas id="gift_${idPrefix}"></canvas></div>
+          <div class="chart-box"><canvas id="email_${idPrefix}"></canvas></div>
+          <div class="chart-box"><canvas id="cert_${idPrefix}"></canvas></div>
+          <div class="chart-box"><canvas id="org_${idPrefix}"></canvas></div>
+        </div>
+      `;
+
+      container.appendChild(section);
+
+      renderPieChart(`gift_${idPrefix}`, ['Có quà', 'Không có quà'], [gift.HAS_GIFT, gift.NO_GIFT], ['#4CAF50', '#FF5722'], 'Trạng thái nhận quà');
+      renderBarChart(`email_${idPrefix}`, ['Đã gửi', 'Chưa gửi'], [email.SENT, email.NOT_SENT], ['#2196F3', '#9E9E9E'], 'Trạng thái gửi Email');
+      renderBarChart(`cert_${idPrefix}`, ['Đã gửi', 'Chưa gửi'], [cert.SENT, cert.NOT_SENT], ['#673AB7', '#E0E0E0'], 'Trạng thái gửi chứng nhận');
+      renderBarChart(`org_${idPrefix}`, Object.keys(orgs), Object.values(orgs), '#FF9800', 'Thành viên theo đơn vị');
+    });
+  }
+
+  function renderPieChart(canvasId, labels, data, colors, title) {
+    new Chart(document.getElementById(canvasId), {
+      type: 'pie',
+      data: {
+        labels,
+        datasets: [{ data, backgroundColor: colors }]
+      },
+      options: {
+        plugins: {
+          title: { display: true, text: title }
+        }
+      }
+    });
+  }
+
+  function renderBarChart(canvasId, labels, data, colors, title) {
+    new Chart(document.getElementById(canvasId), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: '',
+          data,
+          backgroundColor: Array.isArray(colors) ? colors : new Array(labels.length).fill(colors)
+        }]
+      },
+      options: {
+        plugins: {
+          title: { display: true, text: title }
+        },
+        scales: { y: { beginAtZero: true } }
+      }
+    });
+  }
+
+  fetchMemberStats();
+</script>
+
+  </body>
+</html>

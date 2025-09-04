@@ -1,0 +1,98 @@
+{
+    "SUCCESS_DANG_NHAP": {
+        "vn": "Đăng nhập thành công!",
+        "en": "Loginn successful!"
+    },
+    "FAIL_DANG_NHAP": {
+        "vn": "Đăng nhập không thành công!",
+        "en": "Login failed!"
+    },
+    "SUCCESS_DANG_XUAT": {
+        "vn": "Đăng xuất thành công!",
+        "en": "Logout successful!"
+    },
+    "FAIL_DANG_XUAT": {
+        "vn": "Đăng xuất không thành công!",
+        "en": "Logout failed!"
+    },
+    "FAIL_DANG_XUAT_KHONG_CO_PHIEN_DANGNHAP": {
+        "vn": "Không có phiên đăng nhập nào!",
+        "en": "No login sessions!"
+    },
+    "SUCCESS_LAMMOI_TOKEN": {
+        "vn": "Làm mới token thành công. Mã truy cập mới đã được cấp.",
+        "en": "Token refresh successful. New access token has been issued."
+    },
+    "FAIL_LAMMOI_TOKEN_DO_HE_THONG": {
+        "vn": "Làm mới token không thành công do hệ thống.",
+        "en": "Token refresh failed by server."
+    },
+    "FAIL_LAMMOI_TOKEN": {
+        "vn": "Làm mới token thất bại.",
+        "en": "Token refresh failed."
+    },
+    "SUCCESS_DOI_MATKHAU": {
+        "vn": "Đổi mật khẩu thành công!",
+        "en": "Password changed successfully!"
+    },
+    "FAIL_DOI_MATKHAU_NHAP_THIEU": {
+        "vn": "Vui lòng nhập đầy đủ thông tin mật khẩu.",
+        "en": "Please enter full password information."
+    },
+    "FAIL_DOI_MATKHAU_MAT_KHAU_KHONG_CHINH_XAC": {
+        "vn": "Mật khẩu cũ không chính xác.",
+        "en": "Old password is incorrect."
+    },
+    "FAIL_DOI_MATKHAU_2_MAT_KHAU_KHONG_KHOP": {
+        "vn": "Mật khẩu mới và xác nhận không khớp.",
+        "en": "New password and confirmation do not match."
+    },
+    "SUCCESS_LAY_DU_LIEU_THONG_TIN_NGUOI_HIEN_TAI": {
+        "vn": "Lấy dữ liệu '{username}' thành công!",
+        "en": "Data '{username}' fetched successfully!"
+    },
+    "FAIL_LAY_DU_LIEU_THONG_TIN_NGUOI_HIEN_TAI": {
+        "vn": "Lấy dữ liệu người dùng không thành công!",
+        "en": "Fetching user data failed!"
+    },
+    "LOGIN_SUCCESS": {
+        "en": "Login successful.",
+        "fr": "Connexion réussie.",
+        "vn": "Đăng nhập thành công."
+    },
+    "FAIL_DANG_NHAP_LOI_HE_THONG": {
+        "vn": "Đăng nhập thất bại do lỗi hệ thống!"
+    },
+    "FAIL_OAUTH_DANG_NHAP_SAI_THONG_TIN_TK_MK": {
+        "vn": "Tên người dùng hoặc mật khẩu không chính xác!",
+        "en": "Incorrect username or password."
+    },
+    "FAIL_OAUTH_THONG_TIN_TK_BI_KHOA": {
+        "vn": "Tài khoản người dùng đã bị khóa.",
+        "en": "User account has been locked."
+    },
+    "FAIL_OAUTH_YEU_CAU_NHAP_MATKHAU": {
+        "vn": "Mật khẩu không được để trống.",
+        "en": "Password cannot be blank."
+    },
+    "FAIL_OAUTH_MATKHAU_XACNHAN_KHONG_KHOP": {
+        "vn": "Mật khẩu xác nhận không khớp.",
+        "en": "Confirmation password does not match."
+    },
+    "FAIL_OAUTH_USERNAME_DA_DUOC_SUDUNG": {
+        "vn": "Tên người dùng đã tồn tại. Vui lòng chọn tên khác.",
+        "en": "Username already exists. Please choose another one."
+    },
+    "FAIL_OAUTH_EMAIL_DA_DUOC_SUDUNG": {
+        "vn": "Email này đã được sử dụng. Vui lòng sử dụng email khác.",
+        "en": "This email is already in use. Please use another email."
+    },
+    "SUCCESS_OAUTH_DANGKY_NGUOIDUNG": {
+        "vn": "Đăng ký người dùng '{username}' thành công!",
+        "en": "User '{username}' registration successful!"
+    },
+    "INVALID_PASSWORD": {
+        "en": "Invalid password.",
+        "vn": "Mật khẩu không hợp lệ."
+    }
+}

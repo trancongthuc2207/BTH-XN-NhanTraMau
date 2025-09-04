@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+    <row>
+        <id>11</id>
+        <phong>Phòng 1 - Quầy 1</phong>
+    </row>
+    <row>
+        <id>12</id>
+        <phong>Phòng 1 - Quầy 2</phong>
+    </row>
+    <row>
+        <id>13</id>
+        <phong>Phòng 1 - Quầy 3</phong>
+    </row>
+    <row>
+        <id>14</id>
+        <phong>Phòng 1 - Quầy 4</phong>
+    </row>
+    <row>
+        <id>15</id>
+        <phong>Phòng 1 - Quầy 5</phong>
+    </row>
+    <row>
+        <id>16</id>
+        <phong>Phòng 1 - Quầy 6</phong>
+    </row>
+     <row>
+        <id>99</id>
+        <phong>Phòng 2 - Quầy 8</phong>
+    </row>
+     <row>
+        <id>100</id>
+        <phong>Phòng 2 - Quầy 9</phong>
+    </row>
+</root>

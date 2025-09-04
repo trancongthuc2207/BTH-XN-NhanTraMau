@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic File Uploader</title>
+    <!-- Load Tailwind CSS for a modern, responsive design -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Use Inter font from Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+
+    <!-- Main container card -->
+    <div class="bg-white shadow-xl rounded-2xl p-8 max-w-6xl w-full">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Dynamic File Uploader</h1>
+        <p class="text-center text-gray-600 mb-8">Specify the URL and other details for each file upload.</p>
+
+        <!-- General Inputs -->
+        <div class="space-y-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div>
+                    <label for="uploadUrl" class="block text-sm font-medium text-gray-700 mb-1">Upload URL</label>
+                    <input type="text" id="uploadUrl" placeholder="https://example.com/api/upload" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" value="http://192.168.99.143:8001/api/priv/default/files-manager/update-after-create/">
+                </div>
+                <div class="col-span-1 md:col-span-2 lg:col-span-2">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="headerName" class="block text-sm font-medium text-gray-700 mb-1">Custom Header Name</label>
+                            <input type="text" id="headerName" placeholder="e.g., Authorization" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" value="Authorization">
+                        </div>
+                        <div>
+                            <label for="headerValue" class="block text-sm font-medium text-gray-700 mb-1">Custom Header Value</label>
+                            <input type="text" id="headerValue" placeholder="e.g., Bearer token" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main File Input Field -->
+            <div>
+                <label for="fileInput" class="block text-sm font-medium text-gray-700 mb-1">Select Files to Add to Table</label>
+                <input type="file" id="fileInput" multiple name="file" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+            </div>
+        </div>
+
+        <!-- File list table -->
+        <div id="file-list-container" class="hidden">
+            <div class="overflow-x-auto rounded-lg border border-gray-200">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">ID + Files</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Method</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Progress</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Overall Result</th>
+                        </tr>
+                    </thead>
+                    <tbody id="file-list-body" class="bg-white divide-y divide-gray-200">
+                        <!-- File rows will be added here dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Status message area -->
+        <div id="statusMessage" class="mt-8 text-center p-3 rounded-lg text-sm font-medium hidden"></div>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Get all necessary DOM elements
+            const uploadUrlInput = document.getElementById('uploadUrl');
+            const fileInput = document.getElementById('fileInput');
+            const headerNameInput = document.getElementById('headerName');
+            const headerValueInput = document.getElementById('headerValue');
+            const fileListContainer = document.getElementById('file-list-container');
+            const fileListBody = document.getElementById('file-list-body');
+            const statusMessageDiv = document.getElementById('statusMessage');
+
+            // Store state for each row
+            const rowStates = new Map();
+            let rowIdCounter = 1;
+
+            // Handle file input change
+            fileInput.addEventListener('change', (event) => {
+                const files = Array.from(event.target.files);
+                if (files.length > 0) {
+                    fileListContainer.classList.remove('hidden');
+                    const rowId = `row-${rowIdCounter++}`;
+                    
+                    const fileObjects = files.map((file) => ({
+                        file: file,
+                        id: '',
+                        progress: 0,
+                        status: 'pending',
+                        result: ''
+                    }));
+
+                    rowStates.set(rowId, {
+                        files: fileObjects,
+                        method: 'PUT',
+                        overallProgress: 0,
+                        overallStatus: 'pending',
+                        xhr: null,
+                    });
+                    
+                    addRow(rowId);
+                    renderFilesList(rowId);
+                }
+            });
+
+            // Function to add a new row to the table
+            function addRow(rowId) {
+                const row = document.createElement('tr');
+                row.id = rowId;
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        <div class="space-y-2 files-list" data-row-id="${rowId}">
+                            <!-- File entries will be added here dynamically -->
+                        </div>
+                        <button class="add-file-btn mt-2 text-blue-500 hover:text-blue-700 text-xs font-semibold px-2 py-1 border border-blue-500 rounded-full" data-row-id="${rowId}">+ Add File</button>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <select class="w-20 px-2 py-1 border rounded-md text-sm text-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-500 method-select" data-row-id="${rowId}">
+                            <option value="PUT">PUT</option>
+                            <option value="POST">POST</option>
+                        </select>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <div class="progress-cell flex items-center gap-2">
+                            <span class="overall-progress-text w-10 text-right">0%</span>
+                            <div class="w-24 bg-gray-200 rounded-full h-2.5">
+                                <div class="overall-progress-bar bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                        <button class="upload-btn text-blue-600 hover:text-blue-800 px-3 py-1 rounded-full border border-blue-600 hover:border-blue-800 disabled:opacity-50 disabled:cursor-not-allowed" data-row-id="${rowId}">Upload</button>
+                        <button class="stop-btn text-red-600 hover:text-red-800 px-3 py-1 rounded-full border border-red-600 hover:border-red-800 ml-2 disabled:opacity-50 disabled:cursor-not-allowed" data-row-id="${rowId}" disabled>Stop</button>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-500 result-cell">
+                        <span class="overall-status-text capitalize">Pending</span>
+                    </td>
+                `;
+                fileListBody.appendChild(row);
+                
+                // Add event listeners for the new row's buttons
+                row.querySelector('.add-file-btn').addEventListener('click', (e) => {
+                    const newFileInput = document.createElement('input');
+                    newFileInput.type = 'file';
+                    newFileInput.multiple = true;
+                    newFileInput.style.display = 'none';
+                    newFileInput.addEventListener('change', (event) => {
+                        const newFiles = Array.from(event.target.files);
+                        if (newFiles.length > 0) {
+                            const state = rowStates.get(rowId);
+                            const newFileObjects = newFiles.map(file => ({
+                                file: file,
+                                id: '',
+                                progress: 0,
+                                status: 'pending',
+                                result: ''
+                            }));
+                            state.files = [...state.files, ...newFileObjects];
+                            renderFilesList(rowId);
+                            updateOverallProgress(rowId);
+                        }
+                    });
+                    newFileInput.click();
+                });
+                row.querySelector('.upload-btn').addEventListener('click', (e) => uploadFiles(e.target.dataset.rowId));
+                row.querySelector('.stop-btn').addEventListener('click', (e) => stopUpload(e.target.dataset.rowId));
+                row.querySelector('.method-select').addEventListener('change', (e) => updateRowState(e.target.dataset.rowId, 'method', e.target.value));
+            }
+
+            // Function to render the list of files inside a row
+            function renderFilesList(rowId) {
+                const state = rowStates.get(rowId);
+                const fileListDiv = document.getElementById(rowId).querySelector('.files-list');
+                fileListDiv.innerHTML = ''; // Clear previous entries
+
+                state.files.forEach((fileObj, index) => {
+                    // Use a class "file-entry" to make it easy to find this element later.
+                    // Add the data-file-index to the parent div for easy selection.
+                    const fileEntry = document.createElement('div');
+                    fileEntry.className = 'file-entry flex items-center space-x-2 p-2 rounded-md bg-gray-50';
+                    fileEntry.dataset.fileIndex = index;
+                    fileEntry.innerHTML = `
+                        <input type="text" placeholder="ID" class="w-16 px-2 py-1 border rounded-md text-xs file-id-input" value="${fileObj.id || `id_${index + 1}`}" data-row-id="${rowId}" data-file-index="${index}">
+                        <div class="flex-grow min-w-0">
+                            <span class="text-xs text-gray-600 truncate block">${fileObj.file.name}</span>
+                            <div class="flex items-center gap-2 mt-1">
+                                <span class="file-progress-text w-8 text-right text-xs">${fileObj.progress}%</span>
+                                <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                    <div class="file-progress-bar bg-blue-500 h-1.5 rounded-full" style="width: ${fileObj.progress}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <span class="file-status-text capitalize text-xs font-semibold ${getStatusColorClass(fileObj.status)}">${fileObj.status}</span>
+                        <button class="remove-file-btn text-red-400 hover:text-red-600 focus:outline-none" data-row-id="${rowId}" data-file-index="${index}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    `;
+                    fileListDiv.appendChild(fileEntry);
+
+                    // Add event listeners for the dynamically created elements
+                    fileEntry.querySelector('.remove-file-btn').addEventListener('click', (e) => {
+                        const fileIndex = e.target.closest('button').dataset.fileIndex;
+                        removeFile(rowId, parseInt(fileIndex));
+                    });
+                    fileEntry.querySelector('.file-id-input').addEventListener('input', (e) => {
+                        const fileIndex = e.target.dataset.fileIndex;
+                        const state = rowStates.get(rowId);
+                        state.files[fileIndex].id = e.target.value;
+                    });
+                });
+            }
+
+            // Function to update the row's overall state
+            function updateRowState(rowId, key, value) {
+                if (rowStates.has(rowId)) {
+                    rowStates.get(rowId)[key] = value;
+                }
+            }
+
+            // Function to handle the sequential upload of files from a single row
+            async function uploadFiles(rowId) {
+                const state = rowStates.get(rowId);
+                const url = uploadUrlInput.value.trim();
+                
+                if (!state || !url || state.files.length === 0) {
+                    showStatus('URL not found or no files selected.', 'error');
+                    return;
+                }
+
+                const row = document.getElementById(rowId);
+                const uploadBtn = row.querySelector('.upload-btn');
+                const stopBtn = row.querySelector('.stop-btn');
+                const idInputs = row.querySelectorAll('.file-id-input');
+
+                uploadBtn.disabled = true;
+                stopBtn.disabled = false;
+                idInputs.forEach(input => input.disabled = true);
+                
+                updateOverallStatus(rowId, 'uploading');
+
+                for (let i = 0; i < state.files.length; i++) {
+                    const fileObj = state.files[i];
+                    updateFileStatus(rowId, i, 'uploading');
+                    
+                    try {
+                        const formData = new FormData();
+                        formData.append('file', fileObj.file);
+                        if (fileObj.id) {
+                            formData.append('id', fileObj.id);
+                        } else {
+                            // Use a default ID if none is provided
+                            formData.append('id', `id_${i + 1}`);
+                        }
+
+                        const xhr = new XMLHttpRequest();
+                        state.xhr = xhr;
+
+                        xhr.upload.addEventListener('progress', (e) => {
+                            if (e.lengthComputable) {
+                                const percent = Math.round((e.loaded / e.total) * 100);
+                                updateFileProgress(rowId, i, percent);
+                                updateOverallProgress(rowId);
+                            }
+                        });
+
+                        const response = await new Promise((resolve, reject) => {
+                            xhr.addEventListener('load', () => resolve(xhr));
+                            xhr.addEventListener('error', () => reject(new Error('Network error')));
+                            xhr.addEventListener('abort', () => reject(new Error('Upload aborted')));
+                            
+                            xhr.open(state.method, url);
+                            const headerName = headerNameInput.value.trim();
+                            const headerValue = headerValueInput.value.trim();
+                            if (headerName && headerValue) {
+                                xhr.setRequestHeader(headerName, headerValue);
+                            }
+                            xhr.send(formData);
+                        });
+
+                        if (response.status >= 200 && response.status < 300) {
+                            updateFileStatus(rowId, i, 'success');
+                            fileObj.result = `Status: ${response.status}`;
+                        } else {
+                            const responseText = JSON.parse(response.responseText);
+                            updateFileStatus(rowId, i, 'failed');
+                            fileObj.result = `Status: ${response.status}, Msg: ${responseText.message || 'Unknown Error'}`;
+                        }
+                    } catch (error) {
+                        updateFileStatus(rowId, i, 'failed');
+                        fileObj.result = `Error: ${error.message}`;
+                        break; // Stop the loop on a failed upload
+                    }
+                }
+                
+                // Final state update after all uploads are done (or one failed)
+                const allSuccess = state.files.every(f => f.status === 'success');
+                updateOverallStatus(rowId, allSuccess ? 'completed' : 'failed');
+                updateOverallProgress(rowId);
+
+                uploadBtn.disabled = false;
+                stopBtn.disabled = true;
+                idInputs.forEach(input => input.disabled = false);
+            }
+
+            // Function to stop the upload for a single row
+            function stopUpload(rowId) {
+                const state = rowStates.get(rowId);
+                if (state && state.xhr) {
+                    state.xhr.abort();
+                }
+            }
+            
+            // Function to remove a file from the queue
+            function removeFile(rowId, fileIndex) {
+                const state = rowStates.get(rowId);
+                if (!state) return;
+                state.files.splice(fileIndex, 1);
+                renderFilesList(rowId);
+                updateOverallProgress(rowId);
+
+                if (state.files.length === 0) {
+                    const row = document.getElementById(rowId);
+                    if (row) row.remove();
+                    rowStates.delete(rowId);
+                    if (rowStates.size === 0) {
+                        fileListContainer.classList.add('hidden');
+                    }
+                }
+            }
+            
+            // Function to update the status of a specific file within a row
+            function updateFileStatus(rowId, fileIndex, status) {
+                const state = rowStates.get(rowId);
+                if (!state || !state.files[fileIndex]) return;
+                state.files[fileIndex].status = status;
+                const row = document.getElementById(rowId);
+                // Correctly find the specific file entry using the new data attribute
+                const fileEntry = row.querySelector(`.file-entry[data-file-index="${fileIndex}"]`);
+                if (!fileEntry) return;
+                
+                const statusSpan = fileEntry.querySelector('.file-status-text');
+                if (statusSpan) {
+                    statusSpan.textContent = status;
+                    statusSpan.className = `file-status-text capitalize text-xs font-semibold ${getStatusColorClass(status)}`;
+                }
+            }
+
+            // Function to update the progress bar of a specific file within a row
+            function updateFileProgress(rowId, fileIndex, progress) {
+                const state = rowStates.get(rowId);
+                if (!state || !state.files[fileIndex]) return;
+                state.files[fileIndex].progress = progress;
+                const row = document.getElementById(rowId);
+                // Correctly find the specific file entry using the new data attribute
+                const fileEntry = row.querySelector(`.file-entry[data-file-index="${fileIndex}"]`);
+                if (!fileEntry) return;
+
+                const progressBar = fileEntry.querySelector('.file-progress-bar');
+                const progressText = fileEntry.querySelector('.file-progress-text');
+                if (progressBar && progressText) {
+                    progressBar.style.width = `${progress}%`;
+                    progressText.textContent = `${progress}%`;
+                }
+            }
+
+            // Function to update the overall progress bar for a row
+            function updateOverallProgress(rowId) {
+                const state = rowStates.get(rowId);
+                if (!state || state.files.length === 0) return;
+                
+                const totalProgress = state.files.reduce((sum, file) => sum + file.progress, 0);
+                const overallPercent = Math.round(totalProgress / state.files.length);
+                state.overallProgress = overallPercent;
+
+                const row = document.getElementById(rowId);
+                const overallProgressBar = row.querySelector('.overall-progress-bar');
+                const overallProgressText = row.querySelector('.overall-progress-text');
+
+                if (overallProgressBar && overallProgressText) {
+                    overallProgressBar.style.width = `${overallPercent}%`;
+                    overallProgressText.textContent = `${overallPercent}%`;
+                }
+            }
+            
+            // Function to update the overall status for a row
+            function updateOverallStatus(rowId, status) {
+                const state = rowStates.get(rowId);
+                if (!state) return;
+                state.overallStatus = status;
+                const row = document.getElementById(rowId);
+                const statusTextSpan = row.querySelector('.overall-status-text');
+                const resultCell = row.querySelector('.result-cell');
+
+                if (statusTextSpan) {
+                    statusTextSpan.textContent = status;
+                    statusTextSpan.className = `overall-status-text capitalize ${getStatusColorClass(status)}`;
+                }
+                
+                if (resultCell) {
+                    const finalResults = state.files.map(f => `• ${f.file.name}: ${f.result}`).join('\n');
+                    resultCell.innerHTML = `<pre class="text-xs mt-2">${finalResults}</pre>`;
+                }
+            }
+
+            // Helper function to get status color class
+            function getStatusColorClass(status) {
+                switch(status) {
+                    case 'pending': return 'text-gray-500';
+                    case 'uploading': return 'text-blue-500';
+                    case 'success':
+                    case 'completed': return 'text-green-500';
+                    case 'failed': return 'text-red-500';
+                    case 'aborted': return 'text-yellow-500';
+                    default: return 'text-gray-500';
+                }
+            }
+            
+            // Helper function to show status messages at the bottom
+            function showStatus(message, type) {
+                statusMessageDiv.textContent = message;
+                statusMessageDiv.className = 'mt-8 text-center p-3 rounded-lg text-sm font-medium whitespace-pre-wrap';
+                if (type === 'success') {
+                    statusMessageDiv.classList.add('bg-green-100', 'text-green-700');
+                } else if (type === 'error') {
+                    statusMessageDiv.classList.add('bg-red-100', 'text-red-700');
+                } else if (type === 'warning') {
+                    statusMessageDiv.classList.add('bg-yellow-100', 'text-yellow-700');
+                }
+                statusMessageDiv.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

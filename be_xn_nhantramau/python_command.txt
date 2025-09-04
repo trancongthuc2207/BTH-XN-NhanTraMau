@@ -1,0 +1,59 @@
+// tạo máy ảo
+python -m venv venv
+
+python manage.py makemigrations
+python manage.py migrate --database=oauth
+
+// init
+python.exe -m pip install --upgrade pip
+pip install setuptools
+
+
+//
+py -m ensurepip --upgrade
+
+            
+python manage.py runserver 192.168.99.8:8000
+
+python .\manage.py migrate IT_HIENDIEN
+
+
+python manage.py makemigrations IT_OAUTH
+python manage.py migrate IT_OAUTH --database=oauth
+python manage.py makemigrations 
+
+python manage.py makemigrations IT_OAUTH IT_FilesManager IT_MailManager IT_Schedule
+
+// quick setup
+python manage.py auto_setup
+python manage.py iu
+python manage.py u
+
+// USING LOGGING
+from general_utils.logging_wrapper import LogHelper
+
+logger = LogHelper("log_system")
+logger.info(request, 200, "User Login", "Login successful")
+
+
+// USING ResponseBase
+# response = ResponseBase()
+# response.set_data({"user": "John"})
+# response.set_status(ResponseBase.STATUS_CREATED)
+# response.set_message("User successfully created")
+
+
+// ---- LOAD DATA ---- //
+// Files
+python manage.py loaddata initial_config_files.json
+
+// Mail
+python manage.py loaddata initial_config_mail.json
+python manage.py loaddata initial_form_mail.json
+
+// Oauth
+python manage.py loaddata init_config.json
+python manage.py loaddata init_department.json --database=oauth
+
+// Socket
+python manage.py loaddata initial_config_app_socket.json

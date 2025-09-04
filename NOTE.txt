@@ -1,0 +1,112 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Thông báo từ {{ company_name }}</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; margin: 0; padding: 0; background-color: #f4f4f4;">
+
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation">
+        <tr>
+            <td align="center">
+                <table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px; background-color: #ffffff;">
+                    
+                    <!-- Header Section -->
+                    <tr>
+                        <td align="center" style="background-color: #f4f4f4; padding: 10px; text-align: center;">
+                            <div style="max-width: 150px; height: auto; margin: 0 auto;">
+                                {{base64_img_logo}}
+                            </div>
+                            <h2 style="margin: 0; font-size: 20px; color: #333333;">Thông báo từ {{ company_name }}</h2>
+                        </td>
+                    </tr>
+
+                    <!-- Content Section -->
+                    <tr>
+                        <td style="padding: 20px; text-align: left; font-size: 14px; line-height: 1.6; color: #333;">
+                            <p style="margin: 0 0 16px 0;">Xin chào <strong>{{ full_name }}</strong>,</p>
+                            <p style="margin: 0 0 16px 0;">Đây là một email thử nghiệm để xác nhận rằng hệ thống gửi email của chúng tôi hoạt động bình thường.</p>
+                            <p style="margin: 0 0 16px 0;">Nội dung động: <strong>{{ dynamic_content }}</strong></p>
+                            <p style="margin: 0 0 16px 0;">Email này được tạo vào lúc: <strong>{{ current_date }}</strong></p>
+                            
+                            <!-- Embedded Image -->
+                            <table cellpadding="0" cellspacing="0" border="0" role="presentation" align="center" style="width: 200px; height: 200px; margin: 8px auto; border: 1px solid #ddd; text-align: center;">
+                                <tr>
+                                    <td style="text-align: center; vertical-align: middle;">
+                                        <div style="max-width: 100%; height: auto; display: block; margin: 0 auto;">
+                                            {{base64_img_test}}
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p style="margin: 16px 0;">Nếu bạn thấy email này, có nghĩa là mọi thứ đang hoạt động như mong đợi. Bạn cũng sẽ thấy một tệp đính kèm và hình ảnh logo được nhúng trực tiếp trong email này.</p>
+                            
+                            <p style="margin: 16px 0 0 0;">Trân trọng,</p>
+                            <p style="margin: 0;">Bộ phận hỗ trợ kỹ thuật</p>
+                        </td>
+                    </tr>
+
+                    <!-- Footer Section -->
+                    <tr>
+                        <td align="center" style="margin-top: 20px; font-size: 12px; color: #777; text-align: center; background-color: #f4f4f4; padding: 15px;">
+                            <p style="margin: 0;">Đây là email được tạo tự động. Vui lòng không trả lời.</p>
+                        </td>
+                    </tr>
+
+                    <!-- Extra Image -->
+                    <tr>
+                        <td align="center" style="width: 200px; height: 200px; margin: 8px auto; border: 1px solid #ddd; text-align: center; vertical-align: middle;">
+                            {{base64_img_test_2}}
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+
+</body>
+</html>
+
+
+===============================
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OTP Verification Code</title>
+</head>
+<body style="font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; color: #333333;">
+  <div style="max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+    
+    <!-- Header -->
+    <div style="background-color: #007bff; color: #ffffff; padding: 20px; text-align: center;">
+      <h1 style="margin: 0; font-size: 24px;">Mã Xác Thực Của Bạn</h1>
+    </div>
+    
+    <!-- Content -->
+    <div style="padding: 20px 30px; line-height: 1.6; text-align: center;">
+      <p>Chào bạn,</p>
+      <p>Bạn đã yêu cầu một mã xác thực một lần (OTP) để hoàn tất yêu cầu của mình. Vui lòng sử dụng mã dưới đây để tiếp tục:</p>
+      
+      <!-- OTP Code -->
+      <div style="display: inline-block; font-size: 32px; font-weight: bold; letter-spacing: 12px; color: #007bff; background-color: #f0f8ff; padding: 10px 20px; border-radius: 8px; margin: 20px 0; border: 2px dashed #b3d9ff;">
+        {{ otp_code }}
+      </div>
+      
+      <p>Mã này có hiệu lực trong {{ otp_duration }} phút. Vui lòng không chia sẻ mã này với bất kỳ ai.</p>
+    </div>
+    
+    <!-- Footer -->
+    <div style="background-color: #f4f4f4; color: #777777; padding: 15px; font-size: 12px; text-align: center;">
+      <p>Đây là email tự động, vui lòng không trả lời.</p>
+      <p>&copy; 2025 Your Company. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>

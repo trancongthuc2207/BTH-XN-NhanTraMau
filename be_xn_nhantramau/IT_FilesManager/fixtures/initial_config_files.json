@@ -1,0 +1,58 @@
+[
+    {
+        "model": "IT_FilesManager.ConfigApp",
+        "pk": 1,
+        "fields": {
+            "name_config": "STATUS_OF_PROCESS_FILE",
+            "value": "0",
+            "status": true,
+            "description": "Trạng thái chưa duyệt",
+            "is_used": true,
+            "type_config": "FILE_STATUS_DICTIONARY",
+            "created_date": "2025-08-19 12:00:00",
+            "updated_date": "2025-08-19 12:00:00"
+        }
+    },
+    {
+        "model": "IT_FilesManager.ConfigApp",
+        "pk": 2,
+        "fields": {
+            "name_config": "STATUS_OF_PROCESS_FILE",
+            "value": "1",
+            "status": true,
+            "description": "Trạng thái đã duyệt",
+            "is_used": true,
+            "type_config": "FILE_STATUS_DICTIONARY",
+            "created_date": "2025-08-19 12:00:00",
+            "updated_date": "2025-08-19 12:00:00"
+        }
+    },
+    {
+        "model": "IT_FilesManager.ConfigApp",
+        "pk": 3,
+        "fields": {
+            "name_config": "STATUS_OF_PROCESS_FILE",
+            "value": "2",
+            "status": true,
+            "description": "Trạng thái đã từ chối duyệt",
+            "is_used": true,
+            "type_config": "FILE_STATUS_DICTIONARY",
+            "created_date": "2025-08-19 12:00:00",
+            "updated_date": "2025-08-19 12:00:00"
+        }
+    },
+    {
+        "model": "IT_FilesManager.ConfigApp",
+        "pk": 4,
+        "fields": {
+            "name_config": "STATUS_OF_PROCESS_FILE",
+            "value": "3",
+            "status": true,
+            "description": "Trạng thái file đã bị hủy",
+            "is_used": true,
+            "type_config": "FILE_STATUS_DICTIONARY",
+            "created_date": "2025-08-19 12:00:00",
+            "updated_date": "2025-08-19 12:00:00"
+        }
+    }
+]

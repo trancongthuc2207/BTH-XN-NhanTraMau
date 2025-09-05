@@ -3,8 +3,11 @@ from rest_framework import routers
 from . import views
 
 r = routers.DefaultRouter()
-r.register("api/default", views.DefaultViewSet)
 
+# Template
+r.register("xn", views.TemplateViewSet)
+
+r.register("api/default", views.DefaultViewSet)
 r.register("api/pub/xn", views.XN_DVYeuCauViewSet)
 
 urlpatterns = [

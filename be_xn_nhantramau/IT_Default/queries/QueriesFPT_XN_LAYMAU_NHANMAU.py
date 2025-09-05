@@ -48,6 +48,78 @@ def FPT_count_query_non_offset(sql):
         __db["connection"].close()
         return count
 
+# EXCUTE BY SQL
+
+
+def EXCUTE_SQL(str_sql="", sort="-ID", page_config=None):
+    """
+    Execute SQL with sorting + pagination.
+
+    :param str_sql: inner SQL (without order/paging)
+    :param sort: e.g. "ID" or "-ID"
+    :param page_config: dict with {"from": int, "amount": int}
+    :return: (result object, infor_more)
+    """
+    result = Result()
+    infor_more = {
+        "count_all": 0,
+        "count_current": 0,
+    }
+
+    if page_config is None:
+        page_config = {"from": 0, "amount": 150}
+
+    try:
+        __db = db_sql_server.FPT_HIS_PRODUCTION_DBSQLConnection()
+
+        with __db["cursor"] as cursor:
+            sql_base = f"({str_sql}) AS TBL"
+
+            # 🔹 Count all rows BEFORE limit/offset
+            sql_count = f"SELECT COUNT(1) AS CNT FROM {sql_base}"
+            cursor.execute(sql_count)
+            infor_more["count_all"] = cursor.fetchone()[0]
+
+            # Sorting
+            order_col = sort.lstrip("-")
+            order_dir = "DESC" if sort.startswith("-") else "ASC"
+            sql_order = f"ORDER BY {order_col} {order_dir}"
+
+            # Pagination
+            sql_offset = f"""
+                OFFSET {page_config["from"]} ROWS
+                FETCH NEXT {page_config["amount"]} ROWS ONLY
+            """
+
+            # 🔹 Final SQL with ORDER + LIMIT
+            sql_final = f"""
+                SELECT * FROM {sql_base}
+                {sql_order}
+                {sql_offset}
+            """
+
+            cursor.execute(sql_final)
+            # print(sql_final)
+            
+            rows = cursor.fetchall()
+            columns = [col[0] for col in cursor.description]
+
+            data = [dict(zip(columns, row)) for row in rows]
+            result.data = data
+            result.message = (
+                "Lấy dữ liệu thành công!"
+                if len(data) > 0
+                else "Không có dữ liệu nào!"
+            )
+            infor_more["count_current"] = len(data)
+
+    except Exception as e:
+        result.message = str(e)
+        result.status = 0
+
+    return result, infor_more
+
+
 # ---------------------------------------------#
 # ------------- FPT PHÒNG LẤY MẤU -------------#
 # ---------------------------------------------#
@@ -219,7 +291,6 @@ def PLM_get_danhsach_xn_by_where(
         result.message = e
         result.status = 0
         return result
-
 
 
 # ---------------------------------------------#

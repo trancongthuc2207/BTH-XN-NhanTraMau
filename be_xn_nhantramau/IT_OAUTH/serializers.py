@@ -12,6 +12,7 @@ class UserBaseShow(serializers.ModelSerializer):
     Suitable for responses after login/registration or public profiles.
     """
     # Display role name instead of just ID
+    role_code = serializers.CharField(source='role.role_code', read_only=True)
     role_name = serializers.CharField(source='role.name', read_only=True)
 
     class Meta:
@@ -20,8 +21,9 @@ class UserBaseShow(serializers.ModelSerializer):
             'id', 'username', 'email', 'first_name', 'last_name',
             'phone_number', 'department_code', 'date_of_birth', 'gender', 'address',
             'role_name',  # The name of the role
+            'role_code',
             'active', 'date_joined', 'last_login',
-            'created_date', 'updated_date'
+            'created_date', 'updated_date', 'is_staff'
         ]
         read_only_fields = fields  # All fields are read-only for this display serializer
 

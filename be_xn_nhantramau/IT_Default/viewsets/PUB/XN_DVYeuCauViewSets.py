@@ -22,32 +22,34 @@ from rest_framework.response import Response
 from rest_framework.exceptions import NotFound, ValidationError
 
 # Internal Apps
-from IT_OAUTH.models import *
+# from IT_OAUTH.models import *
 from IT_FilesManager.enums.default_enum import *
-from IT_FilesManager.models import *
+from IT_Default.models import ConfigApp as ConfigAppDefault
 from IT_FilesManager.paginations import Paginations
 from IT_FilesManager.perms import *
 from IT_FilesManager.queries import Queries
 from IT_FilesManager.serializers import *
 from IT_OAUTH.throttles import *
-from IT_FilesManager.utils.CodeGenerate import *
-from IT_FilesManager.utils.ResponseMessage import *
 from IT_FilesManager.utils.Utils import *
 
 # Utils
 from general_utils.Template.TemplateResponse import ResponseBase
 from general_utils.utils import *
 from general_utils.Logging.logging_tools import LogHelper
+from general_utils.GetConfig.UtilsConfigSystem import *
 
 from IT_Default.utils.sql_server.sql_utils import sql_build_advanced_filters_and_pagination
 
 # External/Internal OAuth App
 from IT_OAUTH.serializers import *
 
-#
+# Serializers
 from IT_FilesManager.Serializers import (
     FilesSerializers
 )
+
+# SQL Import
+from IT_Default.queries.QueriesFPT_XN_LAYMAU_NHANMAU import *
 
 # Logger sys
 logger_info_sys = LogHelper("file_info_sys")
@@ -91,12 +93,27 @@ class XN_DVYeuCauSetBase(
 
             filters, pagination, params = sql_build_advanced_filters_and_pagination(
                 request, exclude_filter=["join_information_file_value"])
-            
+
             print(filters)
             print(pagination)
             print(params)
 
-            data = []
+            str_sql = GET_VALUE_ACTION_SYSTEM(
+                ConfigAppDefault, "SQL_DS_DVYC_ALL", "default")
+            # print(str_sql)
+            # varriables = extract_template_variables(str_sql)
+            is_render, str_sql_render = render_template_string(str_sql, params)
+            # print(str_sql_render)
+
+            result, infor_more = EXCUTE_SQL(
+                str_sql=str_sql_render,
+                sort=pagination["ordering"],
+                page_config={
+                    "from": (pagination["page"] - 1) * pagination["limit"],
+                    "amount": pagination["limit"],
+                }
+            )
+            # print(result)
             # Response final
             response.set_data({
                 "params": params,
@@ -104,10 +121,10 @@ class XN_DVYeuCauSetBase(
                 # "count": paginator.count,
                 # "total_pages": paginator.num_pages,
                 "current_page": pagination["page"],
-                "data": data
+                "infor_more": infor_more,
+                "data": result.data
             })
-            response.set_message("Không có dữ liệu nào!" if len(
-                data) == 0 else "Lấy dữ liệu thành công!")
+            response.set_message(result.message)
             response.set_status(ResponseBase.STATUS_OK)
 
             return Response(data=response.return_response()["data_response"], status=response.return_response()["status_response"])
@@ -119,6 +136,7 @@ class XN_DVYeuCauSetBase(
                 "count": None,
                 "total_pages": None,
                 "current_page": None,
+                "infor_more": None,
                 "data": None
             })
             response.set_message("Lấy dữ liệu không thành công!")

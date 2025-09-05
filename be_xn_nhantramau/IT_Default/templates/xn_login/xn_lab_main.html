@@ -1,0 +1,367 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lab Test Results</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f3f4f6;
+    }
+    .table-container {
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+
+  <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-8xl mx-auto">
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-3xl font-bold text-gray-800">Lab Test Results</h1>
+        <button id="refreshBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-full shadow-md transition-all duration-300 transform hover:scale-105">
+          <i class="fas fa-sync-alt mr-2"></i> Refresh
+        </button>
+    </div>
+
+    <!-- Parameter Input Form - now dynamic -->
+    <div class="mb-6 bg-gray-50 p-6 rounded-lg border border-gray-200">
+      <h2 class="text-xl font-bold text-gray-700 mb-4">Query Parameters</h2>
+      <div id="paramsForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Inputs will be dynamically added here -->
+      </div>
+      <div class="mt-6 flex justify-end">
+        <button id="fetchDataBtn" class="bg-gray-800 hover:bg-gray-900 text-white font-semibold py-2 px-6 rounded-full shadow-md transition-all duration-300 transform hover:scale-105">
+          <i class="fas fa-search mr-2"></i> Fetch Data
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading spinner and message -->
+    <div id="loading" class="text-center text-gray-500 my-8 hidden">
+      <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-t-4 border-indigo-600 border-t-transparent"></div>
+      <p class="mt-2 text-lg">Loading data...</p>
+    </div>
+
+    <!-- Table to display lab test data -->
+    <div id="tableContainer" class="table-container rounded-lg border border-gray-200 shadow-inner">
+      <table id="dataTable" class="min-w-full bg-white divide-y divide-gray-200">
+        <thead class="bg-gray-50 sticky top-0 z-10">
+          <tr id="tableHeader">
+            <!-- Headers will be inserted here by JavaScript -->
+          </tr>
+        </thead>
+        <tbody id="tableBody" class="bg-white divide-y divide-gray-200">
+          <!-- Data rows will be inserted here by JavaScript -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination Controls -->
+    <div id="pagination" class="flex justify-between items-center mt-6">
+      <button id="prevBtn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-l-full disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+        Previous
+      </button>
+      <span id="pageInfo" class="text-gray-700 font-semibold">Page 1 of 1</span>
+      <button id="nextBtn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-r-full disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+        Next
+      </button>
+    </div>
+
+  </div>
+  <script src="{% static 'js/XetNghiem/check_token.js' %}"></script>
+  <script>
+    const apiXN = {
+      /**
+       * Fetches a list of lab tests from the specified API endpoint.
+       * @param {Object} params An object containing the query parameters.
+       * @returns {Promise<Array<Object>>} A promise that resolves with an array of lab test data.
+       * @throws {Error} Throws an error if the network request fails or the response is not valid JSON.
+       */
+      fetchDanhSachXetNghiem: async (params) => {
+        try {
+          const baseUrl = '/api/pub/xn/nhan-mau/all';
+          const queryString = new URLSearchParams(params).toString();
+          const apiUrl = `${baseUrl}?${queryString}`;
+          
+          const response = await fetch(apiUrl, {
+            method: 'GET',
+          });
+    
+          if (!response.ok) {
+            throw new Error(`API call failed with status: ${response.status}`);
+          }
+    
+          const data = await response.json();
+          return data;
+        } catch (error) {
+          console.error("Error fetching lab test data:", error);
+          throw error;
+        }
+      },
+    };
+
+    /**
+     * Dynamically creates form inputs based on a provided JSON object and a label map.
+     * @param {Object} params A JSON object containing the query parameters and their default values.
+     * @param {Object} labels A JSON object mapping parameter keys to human-readable labels.
+     */
+    function createFormInputs(params, labels) {
+      const formContainer = document.getElementById('paramsForm');
+      formContainer.innerHTML = ''; // Clear existing inputs
+      
+      for (const key in labels) {
+        if (labels.hasOwnProperty(key) && params.hasOwnProperty(key)) {
+          const div = document.createElement('div');
+          
+          const label = document.createElement('label');
+          label.htmlFor = key;
+          label.className = 'block text-sm font-medium text-gray-700';
+          label.textContent = labels[key];
+          
+          const input = document.createElement('input');
+          input.id = key;
+          input.value = params[key];
+          input.className = 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2';
+          
+          // Determine input type based on the value's format
+          if (typeof params[key] === 'number' || (typeof params[key] === 'string' && !isNaN(params[key]))) {
+            input.type = 'number';
+          } else if (/\d{4}-\d{2}-\d{2}/.test(params[key])) {
+            input.type = 'date';
+          } else {
+            input.type = 'text';
+          }
+          
+          div.appendChild(label);
+          div.appendChild(input);
+          formContainer.appendChild(div);
+        }
+      }
+    }
+
+    /**
+     * Gathers form values and renders the table.
+     */
+    async function fetchAndRenderTable() {
+      const params = {};
+      const formContainer = document.getElementById('paramsForm');
+      // Read values from the dynamically created inputs
+      Array.from(formContainer.children).forEach(div => {
+        const input = div.querySelector('input');
+        if (input) {
+          params[input.id] = input.value;
+        }
+      });
+      
+      const tableHeader = document.getElementById('tableHeader');
+      const tableBody = document.getElementById('tableBody');
+      const loadingIndicator = document.getElementById('loading');
+      
+      tableBody.innerHTML = '';
+      tableHeader.innerHTML = '';
+      loadingIndicator.classList.remove('hidden');
+
+      try {
+        const responseData = await apiXN.fetchDanhSachXetNghiem(params);
+        loadingIndicator.classList.add('hidden');
+        
+        const labTests = responseData.data.data;
+
+        // Get the pagination info
+        const currentPage = responseData.data.current_page;
+        const totalCount = responseData.data.infor_more.count_all;
+        const limit = parseInt(params.limit);
+        const totalPages = Math.ceil(totalCount / limit);
+        
+        // Update pagination UI
+        const pageInfo = document.getElementById('pageInfo');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        
+        pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+        prevBtn.disabled = currentPage === 1;
+        nextBtn.disabled = currentPage >= totalPages;
+        
+        if (labTests && labTests.length > 0) {
+          // Get the column keys from the labels object, ensuring order
+          const columnKeys = Object.keys(tableColumnsLabels);
+          
+          // Dynamically generate table headers based on the label map.
+          columnKeys.forEach(key => {
+            const th = document.createElement('th');
+            th.scope = 'col';
+            th.className = 'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider';
+            th.textContent = tableColumnsLabels[key];
+            tableHeader.appendChild(th);
+          });
+          
+          // Render the data rows.
+          labTests.forEach(test => {
+            const row = document.createElement('tr');
+            row.className = 'hover:bg-gray-50 transition-colors duration-200';
+            
+            columnKeys.forEach(key => {
+              const cell = document.createElement('td');
+              
+              if (key === 'actions') {
+                // Create a container for the action buttons
+                const buttonContainer = document.createElement('div');
+                buttonContainer.className = 'flex space-x-2';
+                
+                // View Details button
+                const viewButton = document.createElement('button');
+                viewButton.textContent = 'View';
+                viewButton.className = 'bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-1 px-3 rounded-full text-xs shadow-sm transition-all duration-200';
+                viewButton.onclick = () => handleActionClick('view', test);
+                
+                // Edit button
+                const editButton = document.createElement('button');
+                editButton.textContent = 'Edit';
+                editButton.className = 'bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-1 px-3 rounded-full text-xs shadow-sm transition-all duration-200';
+                editButton.onclick = () => handleActionClick('edit', test);
+
+                // Delete button
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.className = 'bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-3 rounded-full text-xs shadow-sm transition-all duration-200';
+                deleteButton.onclick = () => handleActionClick('delete', test);
+
+                buttonContainer.appendChild(viewButton);
+                buttonContainer.appendChild(editButton);
+                buttonContainer.appendChild(deleteButton);
+
+                cell.className = 'px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900';
+                cell.appendChild(buttonContainer);
+              } else {
+                cell.className = 'px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900';
+                
+                let cellContent = test[key];
+                
+                // Custom formatting for specific columns
+                if (key === 'NGAYTAO' || key === 'NGAYGIOYEUCAU' || key === 'NGAYDUKIEN_THUCHIEN') {
+                  cellContent = new Date(cellContent).toLocaleString('en-GB', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                  }).replace(',', '')
+                } else if (key === 'TRANGTHAI') {
+                  cell.classList.remove('text-gray-900');
+                  if (cellContent === 'HOANTAT') {
+                    cell.classList.add('text-green-600', 'font-semibold');
+                  } else {
+                    cell.classList.add('text-yellow-600', 'font-semibold');
+                  }
+                }
+  
+                cell.textContent = cellContent;
+              }
+              
+              row.appendChild(cell);
+            });
+            
+            tableBody.appendChild(row);
+          });
+        } else {
+          const noDataRow = document.createElement('tr');
+          const noDataCell = document.createElement('td');
+          noDataCell.colSpan = Object.keys(tableColumnsLabels).length > 0 ? Object.keys(tableColumnsLabels).length : 10;
+          noDataCell.className = 'text-center py-8 text-gray-500';
+          noDataCell.textContent = 'No lab test data found.';
+          noDataRow.appendChild(noDataCell);
+          tableBody.appendChild(noDataRow);
+        }
+      } catch (error) {
+        loadingIndicator.classList.add('hidden');
+        const errorRow = document.createElement('tr');
+        const errorCell = document.createElement('td');
+        errorCell.colSpan = Object.keys(tableColumnsLabels).length > 0 ? Object.keys(tableColumnsLabels).length : 10;
+        errorCell.className = 'text-center py-8 text-red-500 font-bold';
+        errorCell.textContent = `Error: ${error.message}. Please try again later.`;
+        errorRow.appendChild(errorCell);
+        tableBody.appendChild(errorRow);
+      }
+    }
+
+    /**
+     * Handles the click event for the action button in each row.
+     * @param {string} action The type of action (e.g., 'view', 'edit', 'delete').
+     * @param {Object} data The data object for the corresponding row.
+     */
+    function handleActionClick(action, data) {
+      console.log(`Action: ${action} triggered for TIEPNHAN_ID:`, data.TIEPNHAN_ID);
+      // Here you can add your custom logic based on the action type
+      switch (action) {
+        case 'view':
+          // Logic for viewing details
+          console.log('Viewing details for:', data);
+          break;
+        case 'edit':
+          // Logic for editing data
+          console.log('Editing data for:', data);
+          break;
+        case 'delete':
+          // Logic for deleting a record
+          console.log('Deleting record for:', data);
+          break;
+        default:
+          console.log('Unknown action:', action);
+      }
+    }
+
+    /**
+     * Changes the current page and triggers a new data fetch.
+     * @param {number} direction The direction to move (1 for next, -1 for previous).
+     */
+    function changePage(direction) {
+      const pageInput = document.getElementById('page');
+      let currentPage = parseInt(pageInput.value);
+      currentPage += direction;
+      pageInput.value = currentPage;
+      fetchAndRenderTable();
+    }
+
+    // Default parameters to build the initial form and fetch data
+    // Get today's date in YYYY-MM-DD
+
+    const defaultParams = {{defaultParams}};
+    //console.log(defaultParams)
+    
+    // Label map to control which parameters are rendered in the form
+    const defaultParamsLabels = {{defaultParamsLabels}};
+    //console.log(defaultParamsLabels)
+    
+    // Label map to control which table columns are rendered
+    const tableColumnsLabels = {{tableColumnsLabels}};
+
+    // Initial page load
+    window.onload = () => {
+      createFormInputs(defaultParams, defaultParamsLabels);
+      fetchAndRenderTable();
+    };
+
+    // Event listeners
+    document.getElementById('refreshBtn').addEventListener('click', () => fetchAndRenderTable());
+    document.getElementById('fetchDataBtn').addEventListener('click', () => {
+      fetchAndRenderTable();
+    });
+    document.getElementById('paramsForm').addEventListener('keypress', (event) => {
+      if (event.key === 'Enter') {
+        fetchAndRenderTable();
+      }
+    });
+
+    document.getElementById('prevBtn').addEventListener('click', () => changePage(-1));
+    document.getElementById('nextBtn').addEventListener('click', () => changePage(1));
+  </script>
+</body>
+</html>

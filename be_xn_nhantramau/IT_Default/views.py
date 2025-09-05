@@ -11,9 +11,15 @@ from django.conf import settings
 import random
 import string
 
+# Template
+from .viewsets.ViewTemplate.TemplateViewSets import *
+
 # ViewSet
 from .viewsets.DefaultViewSets import *
 from .viewsets.PUB.XN_DVYeuCauViewSets import *
+
+# ------- Template ------- #
+TemplateViewSet = TemplateSetBase
 
 # ------- Default ------- #
 DefaultViewSet = DefaultViewSetBase

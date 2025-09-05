@@ -15,6 +15,8 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.db.models.fields.related_descriptors import ReverseManyToOneDescriptor
+from django.template import Template, Context
+from django.template.exceptions import TemplateSyntaxError
 
 
 def format_vnd(amount):
@@ -671,3 +673,18 @@ def load_json_from_file(file_path):
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
         return None
+
+
+def render_template_string(template_str: str, context: dict) -> tuple[bool, str]:
+    """
+    Render a Django template string with context.
+    Returns (success, rendered_string).
+    """
+    try:
+        tmpl = Template(template_str)
+        rendered = tmpl.render(Context(context))
+        return True, rendered.strip()
+    except TemplateSyntaxError as e:
+        return False, f"Template syntax error: {e}"
+    except Exception as e:
+        return False, str(e)

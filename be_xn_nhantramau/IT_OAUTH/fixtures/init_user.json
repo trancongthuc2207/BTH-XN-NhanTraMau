@@ -34,6 +34,20 @@
             "role_name": "Test Thu Ky",
             "email": "thuky@example.com",
             "is_superuser": 0
+        },
+        {
+            "username": "thuthuat",
+            "role_code": "NV_THUTHUAT",
+            "role_name": "Nhân viên thủ thuật",
+            "email": "thuthuat@example.com",
+            "is_superuser": 0
+        },
+        {
+            "username": "gpb",
+            "role_code": "NV_GPB",
+            "role_name": "Nhân viên giải phẩu bệnh",
+            "email": "gpb@example.com",
+            "is_superuser": 0
         }
     ]
 }

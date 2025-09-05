@@ -151,6 +151,62 @@ class XN_DVYeuCauSetBase(
                                    f"GET_danhsach_dichvu_yeucau_xn_all: {str(e)}")
             return Response(data=response.return_response()["data_response"], status=response.return_response()["status_response"])
 
+    @action(methods=["get"], detail=False, url_path="nhan-mau/check-nhanmau", name="")
+    def GET_check_edit_nhanmau(self, request):
+        try:
+            # init response
+            response = ResponseBase()
+
+            filters, pagination, params = sql_build_advanced_filters_and_pagination(
+                request, exclude_filter=["join_information_file_value"])
+
+            print(filters)
+            print(pagination)
+            print(params)
+
+            str_sql = GET_VALUE_ACTION_SYSTEM(
+                ConfigAppDefault, "SQL_CHECK_EDIT_DVYEUCAU", "default")
+            # print(str_sql)
+            # varriables = extract_template_variables(str_sql)
+            is_render, str_sql_render = render_template_string(str_sql, params)
+            print(str_sql_render)
+
+            result, infor_more = EXCUTE_SQL(
+                str_sql=str_sql_render,
+                sort=None,
+                page_config=None
+            )
+            # print(result)
+            # Response final
+            response.set_data({
+                "params": params,
+                "data": result.data
+            })
+            response.set_message(result.message)
+            response.set_status(ResponseBase.STATUS_OK)
+
+            if result.status == 0:
+                response.set_status(ResponseBase.STATUS_INTERNAL_SERVER_ERROR)
+
+            return Response(data=response.return_response()["data_response"], status=response.return_response()["status_response"])
+        except Exception as e:
+            # Response final
+            response.set_data({
+                "params": None,
+                "data": None
+            })
+            response.set_message("Lấy dữ liệu không thành công!")
+            response.add_error(
+                {
+                    "code": 00,
+                    "message": str(e)
+                }
+            )
+            response.set_status(ResponseBase.STATUS_BAD_REQUEST)
+            logger_bug_sys.warning(request, ResponseBase.STATUS_BAD_REQUEST, "GET_check_edit_nhanmau",
+                                   f"GET_check_edit_nhanmau: {str(e)}")
+            return Response(data=response.return_response()["data_response"], status=response.return_response()["status_response"])
+
     # ------------------------------------------------------------------------------ #
     # ------------------------------------------------------------------------------ #
     # ----------------------------------- POST ------------------------------------- #

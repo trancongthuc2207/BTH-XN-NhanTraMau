@@ -53,11 +53,11 @@ def FPT_count_query_non_offset(sql):
 
 def EXCUTE_SQL(str_sql="", sort="-ID", page_config=None):
     """
-    Execute SQL with sorting + pagination.
+    Execute SQL with sorting + optional pagination.
 
     :param str_sql: inner SQL (without order/paging)
-    :param sort: e.g. "ID" or "-ID"
-    :param page_config: dict with {"from": int, "amount": int}
+    :param sort: e.g. "ID", "-ID", or None (no sort)
+    :param page_config: dict with {"from": int, "amount": int} or None
     :return: (result object, infor_more)
     """
     result = Result()
@@ -65,9 +65,6 @@ def EXCUTE_SQL(str_sql="", sort="-ID", page_config=None):
         "count_all": 0,
         "count_current": 0,
     }
-
-    if page_config is None:
-        page_config = {"from": 0, "amount": 150}
 
     try:
         __db = db_sql_server.FPT_HIS_PRODUCTION_DBSQLConnection()
@@ -80,27 +77,32 @@ def EXCUTE_SQL(str_sql="", sort="-ID", page_config=None):
             cursor.execute(sql_count)
             infor_more["count_all"] = cursor.fetchone()[0]
 
-            # Sorting
-            order_col = sort.lstrip("-")
-            order_dir = "DESC" if sort.startswith("-") else "ASC"
-            sql_order = f"ORDER BY {order_col} {order_dir}"
+            # Sorting (optional)
+            if sort:
+                order_col = sort.lstrip("-")
+                order_dir = "DESC" if sort.startswith("-") else "ASC"
+                sql_order = f"ORDER BY {order_col} {order_dir}"
+            else:
+                sql_order = ""  # no sorting
 
-            # Pagination
-            sql_offset = f"""
-                OFFSET {page_config["from"]} ROWS
-                FETCH NEXT {page_config["amount"]} ROWS ONLY
-            """
+            # Pagination (optional)
+            if page_config:
+                sql_offset = f"""
+                    OFFSET {page_config["from"]} ROWS
+                    FETCH NEXT {page_config["amount"]} ROWS ONLY
+                """
+            else:
+                sql_offset = ""  # no pagination
 
-            # 🔹 Final SQL with ORDER + LIMIT
+            # 🔹 Final SQL
             sql_final = f"""
                 SELECT * FROM {sql_base}
                 {sql_order}
                 {sql_offset}
             """
-
-            cursor.execute(sql_final)
             # print(sql_final)
-            
+            cursor.execute(sql_final)
+
             rows = cursor.fetchall()
             columns = [col[0] for col in cursor.description]
 
@@ -112,6 +114,7 @@ def EXCUTE_SQL(str_sql="", sort="-ID", page_config=None):
                 else "Không có dữ liệu nào!"
             )
             infor_more["count_current"] = len(data)
+            result.status = 1
 
     except Exception as e:
         result.message = str(e)

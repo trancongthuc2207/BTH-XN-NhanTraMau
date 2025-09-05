@@ -158,6 +158,55 @@ class Dictionary(BaseModel):
         return f"{self.key}: {self.value}"
 
 
+# class GhiNhanMauXetNghiem(BaseModel):
+#     """
+#     Ghi nhận mẫu & trả mẫu
+#     """
+#     key = models.CharField(
+#         max_length=255,
+#         verbose_name=_("Key"),
+#         help_text=_("This dictionary entry.")
+#     )
+#     value = models.TextField(
+#         null=True,
+#         blank=True,
+#     )
+#     description = models.TextField(
+#         null=True,
+#         blank=True,
+#         verbose_name=_("Description"),
+#         help_text=_("A brief description of this dictionary entry.")
+#     )
+#     type = models.CharField(
+#         max_length=255,
+#         null=True,
+#         blank=True,
+#         verbose_name=_("Type"),
+#         help_text=_(
+#             "The type of this dictionary entry (e.g., 'config', 'setting').")
+#     )
+#     note = models.TextField(
+#         null=True,
+#         blank=True,
+#         verbose_name=_("Note"),
+#         help_text=_(
+#             "Any additional notes or comments about this dictionary entry.")
+#     )
+#     sort_index = models.SmallIntegerField(
+#         null=True,
+#         default=1,
+#         verbose_name=_("Sort Index"),
+#         help_text=_("Sort Index")
+#     )
+
+#     class Meta:
+#         verbose_name_plural = _('Dictionaries')
+#         ordering = ['key']  # Order entries alphabetically by key
+
+#     def __str__(self):
+#         return f"{self.key}: {self.value}"
+
+
 class ConfigApp(ConfigSystem):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="user_config_default")

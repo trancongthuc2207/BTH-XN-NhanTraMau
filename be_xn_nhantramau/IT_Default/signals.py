@@ -48,7 +48,7 @@ def sync_new_app(sender, **kwargs):
             LEFT JOIN TM_NHANVIEN bs_cd ON bs_cd.NHANVIEN_ID = dvyc.BACSICHIDINH_ID
             LEFT JOIN TT_BENHNHAN bn ON bn.BENHNHAN_ID = dvyc.BENHNHAN_ID
                         where 
-                        (CAST(bn.MAYTE AS NVARCHAR(50)) = '{{MAYTE}}' or CAST(dvyc.TIEPNHAN_ID AS NVARCHAR(50)) = '{{TIEPNHAN_ID}})')
+                        (CAST(bn.MAYTE AS NVARCHAR(50)) = '{{MAYTE}}' or CAST(dvyc.TIEPNHAN_ID AS NVARCHAR(50)) = '{{TIEPNHAN_ID}}')
             AND (CONVERT(DATE, dvyc.NGAYGIOYEUCAU) BETWEEN '{{FROM_DATE}}T00:00:00' AND '{{TO_DATE}}T23:59:59.997')
             and dvyc.DICHVU_ID in (
                 SELECT 
@@ -196,6 +196,40 @@ def sync_new_app(sender, **kwargs):
                 "description": "",
                 "is_used": "",
                 "type_config": "XN_TABLE_VIEW_NHANMAU_CONFIG"
+            }
+        )
+        
+        # =========================== SQL CHECK ACTION XN =========================== #
+        config = ConfigApp.objects.get_or_create(
+            id=7,
+            defaults={
+                "name_config": "SQL_CHECK_EDIT_DVYEUCAU",
+                "value": """
+                SELECT DISTINCT TOP 1 
+                    CASE 
+                        WHEN TRANGTHAI IN ('CHUAKETQUA') AND DUOCPHEPTHUCHIEN = 1 THEN 'TRUE'
+                        ELSE 'FALSE'
+                    END AS EDIT_CHECK,
+                    CASE 
+                        WHEN TRANGTHAI IN ('CHUAKETQUA') AND DUOCPHEPTHUCHIEN = 1 THEN N'Kiểm tra thành công!'
+                        WHEN DUOCPHEPTHUCHIEN = 0 THEN N'Dịch vụ chưa được phép thực hiện!'
+                        WHEN TRANGTHAI IN ('DALAYMAU') AND DUOCPHEPTHUCHIEN = 1 THEN N'Xét nghiệm này đã được lấy mẫu!'
+                        WHEN TRANGTHAI IN ('CHOXEM') AND DUOCPHEPTHUCHIEN = 1 THEN N'Xét nghiệm này đang chờ xem kết quả!'
+                        WHEN TRANGTHAI IN ('HOANTAT') AND DUOCPHEPTHUCHIEN = 1 THEN N'Xét nghiệm này đã hoàn tất!'
+                        ELSE 'FALSE'
+                    END AS MESSAGE_CHECK,
+                    DVYEUCAU_ID,
+                    TRANGTHAI,
+                    DUOCPHEPTHUCHIEN
+                    --, *
+                FROM TT_DVYEUCAU
+                WHERE 
+                CAST(DVYEUCAU_ID AS NVARCHAR(50)) = '{{DVYEUCAU_ID}}' 
+                """,
+                "status": 1,
+                "description": "",
+                "is_used": "",
+                "type_config": "SQL_STATEMENT_CHECK_ACTION_CONFIG_XN"
             }
         )
     except Exception as e:

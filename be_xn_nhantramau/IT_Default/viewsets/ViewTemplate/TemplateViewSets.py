@@ -27,6 +27,7 @@ from rest_framework.exceptions import NotFound, ValidationError
 # from IT_OAUTH.models import *
 from IT_FilesManager.enums.default_enum import *
 from IT_Default.models import ConfigApp as ConfigAppDefault
+from IT_OAUTH.models import ConfigApp as ConfigAppOauth
 from IT_FilesManager.paginations import Paginations
 from IT_FilesManager.perms import *
 from IT_FilesManager.queries import Queries
@@ -97,8 +98,15 @@ class TemplateSetBase(
         if get_config:
             LIST_ROLE = json.loads(get_config)
 
+        KEY_AUTHOR = "BTHNOIBO"
+        get_config_key_author = GET_VALUE_ACTION_SYSTEM(
+            ConfigAppOauth, "KEY_AUTHORIZATION", "default")
+        if get_config_key_author:
+            KEY_AUTHOR = get_config_key_author
+
         context = {
             "host_be": settings.HOST,
+            "KEY_AUTHOR": KEY_AUTHOR,
             "LIST_ROLE": LIST_ROLE,
             "LIST_ROLE_JSON": mark_safe(json.dumps(LIST_ROLE)),
         }
@@ -120,6 +128,12 @@ class TemplateSetBase(
             ConfigAppDefault, "LIST_ROLE_FOR_XN_NHAN_MAU", "default")
         if get_config_role:
             LIST_ROLE = json.loads(get_config_role)
+
+        KEY_AUTHOR = "BTHNOIBO"
+        get_config_key_author = GET_VALUE_ACTION_SYSTEM(
+            ConfigAppOauth, "KEY_AUTHORIZATION", "default")
+        if get_config_key_author:
+            KEY_AUTHOR = get_config_key_author
 
         # init params
         defaultParams = """
@@ -176,6 +190,7 @@ class TemplateSetBase(
 
         context = {
             "host_be": settings.HOST,
+            "KEY_AUTHOR": KEY_AUTHOR,
             "LIST_ROLE": LIST_ROLE,
             "LIST_ROLE_JSON": mark_safe(json.dumps(LIST_ROLE)),
             "defaultParams": mark_safe(defaultParams),
@@ -186,6 +201,13 @@ class TemplateSetBase(
 
     @action(methods=["get"], detail=False, url_path="admin")
     def XN_ADMIN_PAGE(self, request):
+        #
+        KEY_AUTHOR = "BTHNOIBO"
+        get_config_key_author = GET_VALUE_ACTION_SYSTEM(
+            ConfigAppOauth, "KEY_AUTHORIZATION", "default")
+        if get_config_key_author:
+            KEY_AUTHOR = get_config_key_author
+
         # init
         today = datetime.now()
         current_date = today.strftime("%Y-%m-%d")
@@ -204,6 +226,7 @@ class TemplateSetBase(
             "quaygoi": where["quaygoi"],
             "host_be": settings.HOST,
             "current_date": current_date,
+            "KEY_AUTHOR": KEY_AUTHOR,
         }
         return TemplateResponse(request, "xn_admin/xn_admin.html", context)
 

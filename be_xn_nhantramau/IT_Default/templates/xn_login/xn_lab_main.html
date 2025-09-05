@@ -20,6 +20,8 @@
   </style>
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+  <!-- Notification container -->
+  <div id="notify-container" class="fixed top-5 right-5 space-y-3 z-50"></div>
 
   <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-8xl mx-auto">
     <div class="flex items-center justify-between mb-6">
@@ -75,7 +77,12 @@
 
   </div>
   <script src="{% static 'js/XetNghiem/check_token.js' %}"></script>
+  <script src="{% static 'js/XetNghiem/popup_notify.js' %}"></script>
   <script>
+    // Run check automatically on page load
+    document.addEventListener("DOMContentLoaded", () => {
+        checkToken(`{{KEY_AUTHOR}}`);
+    });
     const apiXN = {
       /**
        * Fetches a list of lab tests from the specified API endpoint.
@@ -86,6 +93,27 @@
       fetchDanhSachXetNghiem: async (params) => {
         try {
           const baseUrl = '/api/pub/xn/nhan-mau/all';
+          const queryString = new URLSearchParams(params).toString();
+          const apiUrl = `${baseUrl}?${queryString}`;
+          
+          const response = await fetch(apiUrl, {
+            method: 'GET',
+          });
+    
+          if (!response.ok) {
+            throw new Error(`API call failed with status: ${response.status}`);
+          }
+    
+          const data = await response.json();
+          return data;
+        } catch (error) {
+          console.error("Error fetching lab test data:", error);
+          throw error;
+        }
+      },
+      fetchCheckNhanMau: async (params) => {
+        try {
+          const baseUrl = '/api/pub/xn/nhan-mau/check-nhanmau';
           const queryString = new URLSearchParams(params).toString();
           const apiUrl = `${baseUrl}?${queryString}`;
           
@@ -297,6 +325,32 @@
      * @param {string} action The type of action (e.g., 'view', 'edit', 'delete').
      * @param {Object} data The data object for the corresponding row.
      */
+    async function fetchAndCheckNhanMau(data) {
+      const responseData = await apiXN.fetchCheckNhanMau(data);
+      console.log(responseData);
+      if (responseData.data) {
+        let listData = responseData.data.data
+
+        if (listData === null) {
+          showNotify("Không tìm thấy dữ liệu để kiểm tra!", "info");
+          return;
+        }
+
+        if (listData.length > 0) {
+          let dataCheck = listData[0];
+          // CHECK data được phép nhận mẫu
+          if (dataCheck.EDIT_CHECK === "TRUE") {
+            showNotify(dataCheck.MESSAGE_CHECK, "info");
+          } else {
+            showNotify(dataCheck.MESSAGE_CHECK, "warning");
+          }
+        } else {
+          showNotify("Không tìm thấy dữ liệu để kiểm tra!!", "info");
+        }
+      } else {
+        showNotify("Không tìm thấy dữ liệu để kiểm tra!", "warning");
+      }
+    }
     function handleActionClick(action, data) {
       console.log(`Action: ${action} triggered for TIEPNHAN_ID:`, data.TIEPNHAN_ID);
       // Here you can add your custom logic based on the action type
@@ -308,6 +362,7 @@
         case 'edit':
           // Logic for editing data
           console.log('Editing data for:', data);
+          fetchAndCheckNhanMau({DVYEUCAU_ID: data.DVYEUCAU_ID || '0'});
           break;
         case 'delete':
           // Logic for deleting a record

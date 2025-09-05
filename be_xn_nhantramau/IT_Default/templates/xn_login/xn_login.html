@@ -77,6 +77,10 @@
     <script src="{% static 'js/XetNghiem/popup_notify.js' %}"></script>
     <script src="{% static 'js/XetNghiem/check_login.js' %}"></script>
     <script>
+      // Run check automatically on page load
+      document.addEventListener("DOMContentLoaded", () => {
+          checkScreenLogin(`{{KEY_AUTHOR}}`);
+      });
       // List Role Accept
       const LIST_ROLE_JSON = {{ LIST_ROLE_JSON }};
       {% comment %} const LIST_ROLE_JSON = []; {% endcomment %}

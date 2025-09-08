@@ -19,7 +19,8 @@ class DictionarySerializer(serializers.ModelSerializer):
 class DictionaryKeyValueSerializer(serializers.ModelSerializer):
     class Meta:
         model = Dictionary
-        fields = ["key", "value", "description", "type", "sort_index", "active"]
+        fields = ["key", "value", "description",
+                  "type", "sort_index", "active"]
 
 
 ##################################################################################################################
@@ -55,6 +56,8 @@ class GhiNhanMauXetNghiemLessDataSerializer(serializers.ModelSerializer):
             "note",
             "sort_index",
             "active",
+            "created_date",
+            "updated_date"
         ] + ["user_infor"]
 
 

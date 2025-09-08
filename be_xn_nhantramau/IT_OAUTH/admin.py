@@ -29,7 +29,6 @@ EXCLUDE_MODELS = [
     'Session',
     'ContentType',
     'LogEntry',
-    'Permission'
 ]
 
 # --- DYNAMIC FORM CLASS WITH ALL FIELDS OPTIONAL ---

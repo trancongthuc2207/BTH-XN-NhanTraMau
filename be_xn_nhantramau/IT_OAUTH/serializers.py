@@ -1,7 +1,7 @@
 # accounts/serializers.py
 from rest_framework import serializers
 # Ensure all necessary models are imported
-from .models import User, Role, Application, AccessToken
+from .models import User, Role, Application, AccessToken, Department
 # --- Existing Serializers (for context) ---
 import json
 
@@ -14,6 +14,19 @@ class UserBaseShow(serializers.ModelSerializer):
     # Display role name instead of just ID
     role_code = serializers.CharField(source='role.role_code', read_only=True)
     role_name = serializers.CharField(source='role.name', read_only=True)
+    department_name = serializers.SerializerMethodField()
+
+    def get_department_name(self, User):
+        data = ""
+        if User.department_code:
+            try:
+                department_get = Department.objects.using(
+                    "oauth").filter(code=User.department_code).first()
+                if department_get:
+                    data = department_get.name
+            except Exception as e:
+                data = ""
+        return data
 
     class Meta:
         model = User
@@ -21,7 +34,7 @@ class UserBaseShow(serializers.ModelSerializer):
             'id', 'username', 'email', 'first_name', 'last_name',
             'phone_number', 'department_code', 'date_of_birth', 'gender', 'address',
             'role_name',  # The name of the role
-            'role_code',
+            'role_code', 'department_name',
             'active', 'date_joined', 'last_login',
             'created_date', 'updated_date', 'is_staff'
         ]

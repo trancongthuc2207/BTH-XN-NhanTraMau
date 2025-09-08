@@ -168,6 +168,10 @@ class GhiNhanMauXetNghiem(BaseModel):
     """
     Ghi nhận mẫu & trả mẫu
     """
+    STATUS_CHOICES = (
+        ('KHOALS_LAYMAU', 'Khoa lâm sàng lấy mẫu'),
+        ('KHOAXN_NHANMAU', 'Khoa xét nghiệm nhận mẫu'),
+    )
 
     TIEPNHAN_ID = models.CharField(
         max_length=255,
@@ -208,6 +212,7 @@ class GhiNhanMauXetNghiem(BaseModel):
         null=True,
         blank=True,
         verbose_name=_("Type"),
+        choices=STATUS_CHOICES,
         help_text=_("The type of this dictionary entry (e.g., 'config', 'setting')."),
     )
     note = models.TextField(

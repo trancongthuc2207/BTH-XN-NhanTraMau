@@ -172,6 +172,66 @@ class XN_DVYeuCauSetBase(
                 status=response.return_response()["status_response"],
             )
 
+    @action(methods=["get"], detail=False, url_path="nhan-mau/all-ghinhan-by-dvyeucau", name="")
+    def GET_danhsach_ghinhan_dichvu_yeucau_xn_all_by_dvyeucau(self, request):
+        try:
+            # init response
+            response = ResponseBase()
+
+            filters, pagination, params = sql_build_advanced_filters_and_pagination(
+                request, exclude_filter=["join_information_file_value"]
+            )
+
+            print(filters)
+            print(pagination)
+            print(params)
+
+            filters_ghinhan = GhiNhanMauXetNghiem.objects.using("default").filter(
+                **params, active=1)
+
+            result = GhiNhanMauXetNghiemLessDataSerializer(
+                filters_ghinhan, many=True
+            ).data
+
+            # Response final
+            response.set_data(
+                {
+                    "params": params,
+                    "pagination": pagination,
+                    "data": result.data,
+                }
+            )
+            response.set_message(result.message)
+            response.set_status(ResponseBase.STATUS_OK)
+
+            return Response(
+                data=response.return_response()["data_response"],
+                status=response.return_response()["status_response"],
+            )
+        except Exception as e:
+            # Response final
+            response.set_data(
+                {
+                    "params": None,
+                    "pagination": None,
+                    "infor_more": None,
+                    "data": None,
+                }
+            )
+            response.set_message("Lấy dữ liệu không thành công!")
+            response.add_error({"code": 00, "message": str(e)})
+            response.set_status(ResponseBase.STATUS_BAD_REQUEST)
+            logger_bug_sys.warning(
+                request,
+                ResponseBase.STATUS_BAD_REQUEST,
+                "GET_danhsach_dichvu_yeucau_xn_all",
+                f"GET_danhsach_dichvu_yeucau_xn_all: {str(e)}",
+            )
+            return Response(
+                data=response.return_response()["data_response"],
+                status=response.return_response()["status_response"],
+            )
+
     @action(methods=["get"], detail=False, url_path="nhan-mau/check-laymau", name="")
     def GET_check_edit_laymau(self, request):
         try:
@@ -235,7 +295,8 @@ class XN_DVYeuCauSetBase(
                         ] = "Đã có ghi nhận lấy mẫu! Vui lòng kiểm tra lại."
 
                         # set lại response
-                        response.set_data({"params": params, "data": result.data})
+                        response.set_data(
+                            {"params": params, "data": result.data})
                         response.set_message(
                             "Đã có ghi nhận lấy mẫu! Vui lòng kiểm tra lại."
                         )
@@ -324,7 +385,8 @@ class XN_DVYeuCauSetBase(
                         result.data[0][
                             "MESSAGE_CHECK"
                         ] = "Chưa có ghi nhận lấy mẫu nào!"
-                        response.set_data({"params": params, "data": result.data})
+                        response.set_data(
+                            {"params": params, "data": result.data})
                         response.set_message("Chưa có ghi nhận lấy mẫu nào!")
 
                     # Có ghi nhận và kiểm tra những ghi nhận + EDIT_CHECK = TRUE
@@ -332,7 +394,6 @@ class XN_DVYeuCauSetBase(
                         str_check = "TRUE"
                         mess_check = result.data[0]["MESSAGE_CHECK"]
 
-                        # kiểm tra lần ghi nhận cuối có phải là KHOA LS lấy mẫu k
                         if type_last not in ["KHOALS_LAYMAU"]:
                             str_check = "FALSE"
                             mess_check = "Hiện tại khoa Lâm Sàng chưa lấy mẫu!"
@@ -345,10 +406,41 @@ class XN_DVYeuCauSetBase(
                         result.data[0]["EDIT_CHECK"] = str_check
                         result.data[0]["MESSAGE_CHECK"] = mess_check
 
-                        # set lại response
-                        response.set_data({"params": params, "data": result.data})
+                        response.set_data(
+                            {"params": params, "data": result.data})
                         response.set_message(mess_check)
-                        # response.set_status(ResponseBase.STATUS_BAD_GATEWAY)
+
+                    # Kiểm tra trường hợp False: -> ktra default
+                    if result.data[0]["EDIT_CHECK"] == "FALSE":
+                        str_check = result.data[0]["EDIT_CHECK"]
+                        mess_check = result.data[0]["MESSAGE_CHECK"]
+                        # Kiểm tra DB default trước
+                        lst_laymau = GhiNhanMauXetNghiem.objects.using("default").filter(
+                            **params, active=True
+                        ).order_by("-created_date", "sort_index")
+
+                        check_da_laymau = False
+                        check_da_nhan_mau = False
+                        for gn in lst_laymau:
+                            if gn.type in ["KHOALS_LAYMAU"]:
+                                check_da_laymau = True
+                            if gn.type in ["KHOAXN_NHANMAU"]:
+                                check_da_nhan_mau = True
+                        if check_da_nhan_mau:
+                            str_check = "FALSE"
+                            mess_check = "Đã có số lần ghi nhận 'Khoa XN Nhận Mẫu'!"
+                        if result.data[0]["TRANGTHAI"] in ["CHUAKETQUA"] and check_da_laymau and check_da_nhan_mau == False:
+                            str_check = "FALSE"
+                            mess_check = "Sai trạng thái HIS! Đã có số lần ghi nhận 'Khoa LS Lấy Mẫu'!"
+
+                        # re-SET dữ liệu
+                        result.data[0]["EDIT_CHECK"] = str_check
+                        result.data[0]["MESSAGE_CHECK"] = mess_check
+
+                        # set lại response
+                        response.set_data(
+                            {"params": params, "data": result.data})
+                        response.set_message(mess_check)
 
             return Response(
                 data=response.return_response()["data_response"],
@@ -396,20 +488,270 @@ class XN_DVYeuCauSetBase(
             try:
                 with transaction.atomic(using="default"):
                     ghinhan = GhiNhanMauXetNghiem()
+                    ghinhan.user = request.user
 
                     # asign value
                     ghinhan = assign_fields_to_instance(
                         instance=ghinhan,
                         data=data_body,
-                        exclude_fields=["files_infor", "file", "fileinformation"],
+                        exclude_fields=["files_infor",
+                                        "file", "fileinformation"],
                         response=response,
                     )
-                    ghinhan.save()
+
+                    # Kiểm tra loại
+                    if ghinhan.type not in ["KHOALS_LAYMAU", "KHOAXN_NHANMAU"]:
+                        response.set_data(None)
+                        response.set_message("Loại ghi nhận không đúng!")
+                        response.set_status(ResponseBase.STATUS_BAD_GATEWAY)
+                        return Response(
+                            data=response.return_response()["data_response"],
+                            status=response.return_response()[
+                                "status_response"],
+                        )
+
+                    # Cập nhật his
+                    match ghinhan.type:
+                        # KHOA LÂM SÀNG LẤY MẪU
+                        case "KHOALS_LAYMAU":
+                            print("ghinhan.type::KHOALS_LAYMAU")
+                            # Kiểm tra trạng thái current
+                            if ghinhan.TRANGTHAI not in ["CHUAKETQUA"]:
+                                response.set_data(None)
+                                response.set_message(
+                                    "Trạng thái HIS không đúng (Khoa LS lấy mẫu)!")
+                                response.set_status(
+                                    ResponseBase.STATUS_BAD_REQUEST)
+                                return Response(
+                                    data=response.return_response()[
+                                        "data_response"],
+                                    status=response.return_response()[
+                                        "status_response"],
+                                )
+                            # Kiểm tra DB default trước
+                            lst_laymau = GhiNhanMauXetNghiem.objects.using("default").filter(
+                                DVYEUCAU_ID=ghinhan.DVYEUCAU_ID, active=True
+                            ).order_by("-created_date", "sort_index")
+                            check_da_lay_mau = False
+                            check_da_nhan_mau = False
+                            for gn in lst_laymau:
+                                if gn.type in ["KHOALS_LAYMAU"]:
+                                    check_da_lay_mau = True
+                                if gn.type in ["KHOAXN_NHANMAU"]:
+                                    check_da_nhan_mau = True
+                            if check_da_lay_mau:
+                                response.set_data(None)
+                                response.set_message(
+                                    "Đã có số lần ghi nhận 'Khoa LS Lấy Mẫu'!")
+                                response.set_status(
+                                    ResponseBase.STATUS_BAD_REQUEST)
+                                return Response(
+                                    data=response.return_response()[
+                                        "data_response"],
+                                    status=response.return_response()[
+                                        "status_response"],
+                                )
+
+                            if check_da_nhan_mau:
+                                response.set_data(None)
+                                response.set_message(
+                                    "Đã có số lần ghi nhận 'Khoa XN Nhận Mẫu'!")
+                                response.set_status(
+                                    ResponseBase.STATUS_BAD_REQUEST)
+                                return Response(
+                                    data=response.return_response()[
+                                        "data_response"],
+                                    status=response.return_response()[
+                                        "status_response"],
+                                )
+                            # ------- Kiểm tra lấy mẫu ------- #
+                            str_sql = GET_VALUE_ACTION_SYSTEM(
+                                ConfigAppDefault, "SQL_CHECK_EDIT_DVYEUCAU", "default"
+                            )
+                            is_render, str_sql_render = render_template_string(
+                                str_sql, data_body)
+                            # print(str_sql_render)
+                            result, infor_more = EXCUTE_SQL(
+                                str_sql=str_sql_render, sort=None, page_config=None
+                            )
+                            # print(result.data)
+                            if result.status == 0:
+                                response.set_data(None)
+                                response.set_message(result.message)
+                                response.set_status(
+                                    ResponseBase.STATUS_BAD_REQUEST)
+                                return Response(
+                                    data=response.return_response()[
+                                        "data_response"],
+                                    status=response.return_response()[
+                                        "status_response"],
+                                )
+                            if result.data:
+                                if result.data[0]:
+                                    if result.data[0]["EDIT_CHECK"] == "FALSE":
+                                        response.set_data(None)
+                                        response.set_message(
+                                            result.data[0]["MESSAGE_CHECK"])
+                                        response.set_status(
+                                            ResponseBase.STATUS_BAD_REQUEST)
+                                        return Response(
+                                            data=response.return_response()[
+                                                "data_response"],
+                                            status=response.return_response()[
+                                                "status_response"],
+                                        )
+                            # ------- Kiểm tra lấy mẫu ------- #
+                            ghinhan.save()
+                            # Update his
+                            str_update_sql = GET_VALUE_ACTION_SYSTEM(
+                                ConfigAppDefault, "SQL_UPDATE_TRANGTHAI_DVYEUCAU_XN", "default"
+                            )
+                            # print(str_sql)
+                            is_render, str_sql_render = render_template_string(
+                                str_update_sql, data_body)
+                            result, info = EXECUTE_UPDATE(str_sql_render)
+                            if result.status == 0:
+                                ghinhan.delete()
+                                response.set_data(None)
+                                response.set_message(
+                                    "Cập nhật HIS không thành công!")
+                                response.add_error({"server": result.message})
+                                response.set_status(
+                                    ResponseBase.STATUS_BAD_GATEWAY)
+                            print(info)
+
+                        # KHOA XÉT NGHIỆM NHẬN MẪU
+                        case "KHOAXN_NHANMAU":
+                            print("ghinhan.type::KHOAXN_NHANMAU")
+                            # Kiểm tra trạng thái current
+                            if ghinhan.TRANGTHAI not in ["DALAYMAU"]:
+                                response.set_data(None)
+                                response.set_message(
+                                    "Trạng thái HIS không đúng! (Khoa XN lấy mẫu)")
+                                response.set_status(
+                                    ResponseBase.STATUS_BAD_REQUEST)
+                                return Response(
+                                    data=response.return_response()[
+                                        "data_response"],
+                                    status=response.return_response()[
+                                        "status_response"],
+                                )
+
+                            # ------- Kiểm tra lấy mẫu ------- #
+                            str_sql = GET_VALUE_ACTION_SYSTEM(
+                                ConfigAppDefault, "SQL_CHECK_EDIT_NHANMAU_DVYEUCAU", "default"
+                            )
+                            is_render, str_sql_render = render_template_string(
+                                str_sql, data_body)
+                            # print(str_sql_render)
+                            result, infor_more = EXCUTE_SQL(
+                                str_sql=str_sql_render, sort=None, page_config=None
+                            )
+                            # print(result.data)
+                            if result.status == 0:
+                                response.set_data(None)
+                                response.set_message(result.message)
+                                response.set_status(
+                                    ResponseBase.STATUS_BAD_REQUEST)
+                                return Response(
+                                    data=response.return_response()[
+                                        "data_response"],
+                                    status=response.return_response()[
+                                        "status_response"],
+                                )
+
+                            # Kiểm tra DB default trước
+                            lst_laymau = GhiNhanMauXetNghiem.objects.using("default").filter(
+                                DVYEUCAU_ID=ghinhan.DVYEUCAU_ID, active=True
+                            ).order_by("-created_date", "sort_index")
+                            type_last = ""
+                            # lấy type cuối cùng
+                            for gn in lst_laymau:
+                                type_last = gn.type
+                                break
+                            if type_last not in ["KHOALS_LAYMAU"]:
+                                response.set_data(None)
+                                response.set_message(
+                                    f"Đã có tồn tại ghi nhận '{type_last}' ở lần ghi nhận cuối!")
+                                response.set_status(
+                                    ResponseBase.STATUS_BAD_REQUEST)
+                                return Response(
+                                    data=response.return_response()[
+                                        "data_response"],
+                                    status=response.return_response()[
+                                        "status_response"],
+                                )
+                            check_da_nhan_mau = False
+                            for gn in lst_laymau:
+                                if gn.type in ["KHOAXN_NHANMAU"]:
+                                    check_da_nhan_mau = True
+                                    break
+                            if check_da_nhan_mau:
+                                response.set_data(None)
+                                response.set_message(
+                                    "Đã có số lần ghi nhận 'Khoa XN Nhận Mẫu'!")
+                                response.set_status(
+                                    ResponseBase.STATUS_BAD_REQUEST)
+                                return Response(
+                                    data=response.return_response()[
+                                        "data_response"],
+                                    status=response.return_response()[
+                                        "status_response"],
+                                )
+
+                            # Kiểm tra trạng thái HIS
+                            if result.data:
+                                if result.data[0]:
+                                    if result.data[0]["EDIT_CHECK"] == "FALSE":
+                                        response.set_data(None)
+                                        response.set_message(
+                                            result.data[0]["MESSAGE_CHECK"])
+                                        response.set_status(
+                                            ResponseBase.STATUS_BAD_REQUEST)
+                                        return Response(
+                                            data=response.return_response()[
+                                                "data_response"],
+                                            status=response.return_response()[
+                                                "status_response"],
+                                        )
+                            # ------- Kiểm tra lấy mẫu ------- #
+                            ghinhan.save()
+                            # Update his
+                            str_update_sql = GET_VALUE_ACTION_SYSTEM(
+                                ConfigAppDefault, "SQL_UPDATE_TRANGTHAI_DVYEUCAU_XN", "default"
+                            )
+                            # print(str_sql)
+                            is_render, str_sql_render = render_template_string(
+                                str_update_sql, data_body)
+                            result, info = EXECUTE_UPDATE(str_sql_render)
+                            if result.status == 0:
+                                ghinhan.delete()
+                                response.set_data(None)
+                                response.set_message(
+                                    "Cập nhật HIS không thành công!")
+                                response.add_error({"server": result.message})
+                                response.set_status(
+                                    ResponseBase.STATUS_BAD_GATEWAY)
+                            print(info)
+
+                        case _:
+                            print("DEFAULT")
+                            response.set_data(None)
+                            response.set_message(
+                                "Loại cập nhật không đúng!")
+                            response.set_status(
+                                ResponseBase.STATUS_BAD_REQUEST)
+                            return Response(
+                                data=response.return_response()[
+                                    "data_response"],
+                                status=response.return_response()[
+                                    "status_response"],
+                            )
 
                     # return response
                     data_response = GhiNhanMauXetNghiemSerializer(ghinhan).data
                     response.set_data(data_response)
-                    response.set_message("Tạo nhiều nguồn file thành công!")
+                    response.set_message("Tạo ghi nhận mẫu thành công!")
                     response.set_status(ResponseBase.STATUS_CREATED)
             except Exception as e:
                 # Exception Set Data
@@ -420,7 +762,7 @@ class XN_DVYeuCauSetBase(
         except Exception as e:
             # Exception Set Data
             response.set_data(None)
-            response.set_message("Tạo nguồn file không thành công!")
+            response.set_message("Tạo ghi nhận mẫu không thành công!")
             response.set_status(ResponseBase.STATUS_BAD_REQUEST)
             response.add_error({"server": str(e)})
 

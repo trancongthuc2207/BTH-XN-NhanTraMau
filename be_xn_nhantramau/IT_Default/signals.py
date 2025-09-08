@@ -263,5 +263,40 @@ def sync_new_app(sender, **kwargs):
                 "type_config": "SQL_STATEMENT_CHECK_ACTION_CONFIG_XN",
             },
         )
+
+        config = ConfigApp.objects.get_or_create(
+            id=9,
+            defaults={
+                "name_config": "SQL_UPDATE_TRANGTHAI_DVYEUCAU_XN",
+                "value": """
+                UPDATE TT_DVYEUCAU
+                SET TRANGTHAI = N'{{TRANGTHAI_UPDATED}}' -- CHUAKETQUA or DALAYMAU
+                WHERE CAST(DVYEUCAU_ID AS NVARCHAR(50)) = '{{DVYEUCAU_ID}}'
+                """,
+                "status": 1,
+                "description": "",
+                "is_used": "",
+                "type_config": "SQL_STATEMENT_CHECK_ACTION_CONFIG_XN",
+            },
+        )
+
+        config = ConfigApp.objects.get_or_create(
+            id=10,
+            defaults={
+                "name_config": "OBJ_MAPPING_TABLE_VIEW_DETAIL_COLUMN_XN_ALL",
+                "value": """
+                {
+        "user_infor.first_name": "Tên",
+        "type": "Loại Ghi Nhận",
+        "user_infor.department_name": "Nhân Viên K/P",
+        "created_date": "Ngày Giờ Thực Hiện"
+      }
+                """,
+                "status": 1,
+                "description": "",
+                "is_used": "",
+                "type_config": "XN_TABLE_VIEW_DETAIL_GHINHAN_CONFIG",
+            },
+        )
     except Exception as e:
         print(e)

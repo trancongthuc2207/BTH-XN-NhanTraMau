@@ -28,23 +28,39 @@
 
   <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-8xl mx-auto">
     <div class="flex items-center justify-between mb-6">
-      <h1 class="text-3xl font-bold text-gray-800">Lab Test Results</h1>
+      <h1 class="text-3xl font-bold text-gray-800">Ghi Nhận Lấy Mẫu Và Nhận Mẫu Xét Nghiệm</h1>
       <button id="refreshBtn"
         class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-full shadow-md transition-all duration-300 transform hover:scale-105">
         <i class="fas fa-sync-alt mr-2"></i> Refresh
       </button>
     </div>
 
+    <!-- Direct Links Section -->
+    <div class="flex space-x-4 mb-6">
+        <a href="#" class="bg-gray-800 hover:bg-gray-900 text-white font-semibold py-2 px-6 rounded-full shadow-md transition-all duration-300 transform hover:scale-105">
+            Trang Chủ
+        </a>
+        <a href="/xn/logout" class="bg-gray-800 hover:bg-gray-900 text-white font-semibold py-2 px-6 rounded-full shadow-md transition-all duration-300 transform hover:scale-105">
+            Đăng xuất
+        </a>
+    </div>
+
+    <!-- User Information Display -->
+    <div id="userInfor" class="mb-6 bg-blue-50 p-6 rounded-lg border border-blue-200 hidden">
+        <h2 class="text-xl font-bold text-blue-700 mb-4">Thông tin người dùng</h2>
+        <!-- User data will be rendered here by JavaScript -->
+    </div>
+
     <!-- Parameter Input Form - now dynamic -->
     <div class="mb-6 bg-gray-50 p-6 rounded-lg border border-gray-200">
-      <h2 class="text-xl font-bold text-gray-700 mb-4">Query Parameters</h2>
+      <h2 class="text-xl font-bold text-gray-700 mb-4">Thông tin tìm kiếm</h2>
       <div id="paramsForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <!-- Inputs will be dynamically added here -->
       </div>
       <div class="mt-6 flex justify-end">
         <button id="fetchDataBtn"
           class="bg-gray-800 hover:bg-gray-900 text-white font-semibold py-2 px-6 rounded-full shadow-md transition-all duration-300 transform hover:scale-105">
-          <i class="fas fa-search mr-2"></i> Fetch Data
+          <i class="fas fa-search mr-2"></i> Tìm kiếm
         </button>
       </div>
     </div>
@@ -87,7 +103,24 @@
     </div>
 
   </div>
-  <!-- <script src="{% static 'js/XetNghiem/check_token.js' %}"></script> -->
+
+  <!-- Modal and overlay container -->
+  <div id="modalContainer" class="fixed inset-0 hidden items-center justify-center p-4 z-50">
+    <div id="modalOverlay" class="absolute inset-0 modal-overlay"></div>
+    <div class="bg-white rounded-xl shadow-lg p-8 w-full max-w-6xl z-10 relative">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-2xl font-bold text-gray-800">Thông tin chi tiết</h3>
+        <button id="closeModalBtn" class="text-gray-400 hover:text-gray-600 transition-colors">
+          <i class="fas fa-times text-xl"></i>
+        </button>
+      </div>
+      <div id="modalContent" class="max-h-[70vh] overflow-y-auto">
+        <!-- Dynamic content will be rendered here -->
+      </div>
+    </div>
+  </div>
+  
+  <script src="{% static 'js/XetNghiem/check_token.js' %}"></script>
   <script src="{% static 'js/XetNghiem/popup_notify.js' %}"></script>
   <script>
     // Run check automatically on page load
@@ -122,7 +155,7 @@
           throw error;
         }
       },
-      fetchCheckNhanMau: async (params) => {
+      fetchCheckLayMau: async (params) => {
         try {
           const baseUrl = '/api/pub/xn/nhan-mau/check-laymau';
           const queryString = new URLSearchParams(params).toString();
@@ -143,6 +176,91 @@
           throw error;
         }
       },
+      fetchCheckNhanMau: async (params) => {
+        try {
+          const baseUrl = '/api/pub/xn/nhan-mau/check-nhanmau';
+          const queryString = new URLSearchParams(params).toString();
+          const apiUrl = `${baseUrl}?${queryString}`;
+
+          const response = await fetch(apiUrl, {
+            method: 'GET',
+          });
+
+          if (!response.ok) {
+            throw new Error(`API call failed with status: ${response.status}`);
+          }
+
+          const data = await response.json();
+          return data;
+        } catch (error) {
+          console.error("Error fetching lab test data:", error);
+          throw error;
+        }
+      },
+      postGhiNhanLayMau: async (params) => {
+        try {
+          const apiUrl = '/api/pub/xn/ghinhan-trangthai/';
+
+          // 🔹 Add extra keys here
+          const payload = {
+            ...params,
+            TRANGTHAI_UPDATED: "DALAYMAU", // DALAYMAU: khi lấy mẫu ;; CHUAKETQUA: khi nhận mẫu
+            note: "",
+            type: "KHOALS_LAYMAU"
+          };
+
+          const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Requested-With': 'XMLHttpRequest', // example extra header
+              'Authorization': `{{KEY_AUTHOR}} ${localStorage.getItem('access_token')?.replace(/"/g, '') || ''}`
+            },
+            body: JSON.stringify(payload)
+          });
+
+          const data = await response.json();
+          return {
+            status: response.status,
+            data: data
+          };
+        } catch (error) {
+          console.error("Error fetching lab test data:", error);
+          throw error;
+        }
+      },
+      postGhiNhanNhanMau: async (params) => {
+        try {
+          const apiUrl = '/api/pub/xn/ghinhan-trangthai/';
+
+          // 🔹 Add extra keys here
+          const payload = {
+            ...params,
+            TRANGTHAI_UPDATED: "CHUAKETQUA", // DALAYMAU: khi lấy mẫu ;; CHUAKETQUA: khi nhận mẫu
+            note: "",
+            type: "KHOAXN_NHANMAU"
+          };
+
+          const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Requested-With': 'XMLHttpRequest', // example extra header
+              'Authorization': `{{KEY_AUTHOR}} ${localStorage.getItem('access_token')?.replace(/"/g, '') || ''}`
+            },
+            body: JSON.stringify(payload)
+          });
+
+          const data = await response.json();
+          return {
+            status: response.status,
+            data: data
+          };
+        } catch (error) {
+          console.error("Error fetching lab test data:", error);
+          throw error;
+        }
+      }
     };
 
     /**
@@ -190,6 +308,8 @@
     async function fetchAndRenderTable() {
       const params = {};
       const formContainer = document.getElementById('paramsForm');
+      const userDataString = localStorage.getItem('user');
+      const userData = JSON.parse(userDataString);
       // Read values from the dynamically created inputs
       Array.from(formContainer.children).forEach(div => {
         const input = div.querySelector('input');
@@ -243,7 +363,23 @@
           // Render the data rows.
           labTests.forEach(test => {
             const row = document.createElement('tr');
-            row.className = 'hover:bg-gray-50 transition-colors duration-200';
+            //row.className = 'hover:bg-gray-50 transition-colors duration-200';
+
+            // Set background color based on status
+            if (test.LIST_GHINHAN.length > 0) {
+              for (const vl of test.LIST_GHINHAN) {
+                if (vl.type === "KHOAXN_NHANMAU") {
+                  row.className = 'bg-green-50 hover:bg-blue-100 transition-colors duration-200';
+                  break;
+                }
+                if (vl.type === "KHOALS_LAYMAU") {
+                  row.className = 'bg-yellow-50 hover:bg-blue-100 transition-colors duration-200';
+                  break;
+                }
+              }
+            } else {
+              row.className = 'hover:bg-blue-100 transition-colors duration-200';
+            }
 
             columnKeys.forEach(key => {
               const cell = document.createElement('td');
@@ -259,11 +395,17 @@
                 viewButton.className = 'bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-1 px-3 rounded-full text-xs shadow-sm transition-all duration-200';
                 viewButton.onclick = () => handleActionClick('view', test);
 
-                // Edit button
-                const editButton = document.createElement('button');
-                editButton.textContent = 'Edit';
-                editButton.className = 'bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-1 px-3 rounded-full text-xs shadow-sm transition-all duration-200';
-                editButton.onclick = () => handleActionClick('edit', test);
+                // Lấy mẫu button
+                const laymauButton = document.createElement('button');
+                laymauButton.textContent = 'Lấy mẫu (LS)';
+                laymauButton.className = 'bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-1 px-3 rounded-full text-xs shadow-sm transition-all duration-200';
+                laymauButton.onclick = () => handleActionClick('laymau', test);
+
+                // Nhận mẫu button
+                const nhanmauButton = document.createElement('button');
+                nhanmauButton.textContent = 'Nhận mẫu (XN)';
+                nhanmauButton.className = 'bg-green-500 hover:bg-yellow-600 text-white font-bold py-1 px-3 rounded-full text-xs shadow-sm transition-all duration-200';
+                nhanmauButton.onclick = () => handleActionClick('nhanmau', test);
 
                 // Delete button
                 const deleteButton = document.createElement('button');
@@ -272,8 +414,11 @@
                 deleteButton.onclick = () => handleActionClick('delete', test);
 
                 buttonContainer.appendChild(viewButton);
-                buttonContainer.appendChild(editButton);
-                buttonContainer.appendChild(deleteButton);
+                buttonContainer.appendChild(laymauButton);
+                buttonContainer.appendChild(nhanmauButton);
+                if (userData.is_staff) {
+                  buttonContainer.appendChild(deleteButton);
+                }
 
                 cell.className = 'px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900';
                 cell.appendChild(buttonContainer);
@@ -332,12 +477,141 @@
     }
 
     /**
+     * Renders the user information from localStorage to a div on the page.
+     */
+    function renderUserInfor() {
+        const userInforDiv = document.getElementById('userInfor');
+        const userDataString = localStorage.getItem('user');
+        
+        if (!userDataString) {
+            userInforDiv.classList.add('hidden');
+            return;
+        }
+
+        try {
+            const userData = JSON.parse(userDataString);
+            const userContent = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-800 text-sm">
+                    <p><strong>Tên tài khoản:</strong> ${userData.username || 'N/A'}</p>
+                    <p><strong>Họ và tên:</strong> ${userData.first_name || 'N/A'} ${userData.last_name || ''}</p>
+                    <p><strong>Email:</strong> ${userData.email || 'N/A'}</p>
+                    <p><strong>Vai trò:</strong> ${userData.role_name || 'N/A'}</p>
+                    <p><strong>Phòng ban:</strong> ${userData.department_name || 'N/A'}</p>
+                </div>
+            `;
+            userInforDiv.innerHTML = `<h2 class="text-xl font-bold text-blue-700 mb-4">Thông tin người dùng</h2>${userContent}`;
+            userInforDiv.classList.remove('hidden');
+
+        } catch (e) {
+            console.error("Failed to parse user data from localStorage:", e);
+            userInforDiv.classList.add('hidden');
+        }
+    }
+    /**
+     * A helper function to safely get a value from a nested object key string (e.g., 'user_infor.username').
+     * @param {Object} obj The object to search within.
+     * @param {string} keyString The dot-separated key string.
+     * @returns The value, or an empty string if not found.
+     */
+    function getValueFromNestedKey(obj, keyString) {
+      const keys = keyString.split('.');
+      let value = obj;
+      for (const key of keys) {
+        if (value && typeof value === 'object' && value.hasOwnProperty(key)) {
+          value = value[key];
+        } else {
+          return ''; // Return empty string if any part of the path doesn't exist.
+        }
+      }
+      return value || '';
+    }
+    
+    /**
+     * Shows a modal with detailed information for a specific row.
+     * @param {Object|Array} data The data object or array for the selected row(s).
+     */
+    function showModal(data) {
+      const modalContainer = document.getElementById('modalContainer');
+      const modalContent = document.getElementById('modalContent');
+      let objectHeaderShow = tableViewDetailColumnsLabels;
+      const dataArray = Array.isArray(data) ? data : [data];
+      
+      // Use the comprehensive objectHeaderShow to define what to show.
+      // Filter out keys that don't exist in the data.
+      const keysToShow = Object.keys(objectHeaderShow)
+        .filter(key => key !== 'actions' && dataArray.length > 0);
+
+      let detailHtml = `
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+      `;
+      
+      // Tạo header (tiêu đề cột)
+      keysToShow.forEach(key => {
+        let label = objectHeaderShow[key] || key;
+        detailHtml += `<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">${label}</th>`;
+      });
+      detailHtml += `
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+      `;
+      
+      // Tạo các hàng dữ liệu
+      dataArray.forEach(item => {
+        detailHtml += `<tr>`;
+        keysToShow.forEach(key => {
+          // Use the helper function to get the value, which can be nested.
+          let value = getValueFromNestedKey(item, key);
+          
+          if (key.includes('NGAYTAO') || key.includes('NGAYGIOYEUCAU') || key.includes('NGAYDUKIEN_THUCHIEN') || key.includes('created_date') || key.includes('updated_date')) {
+            value = new Date(value).toLocaleString('en-GB', {
+              day: '2-digit', month: '2-digit', year: 'numeric',
+              hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+            }).replace(',', '');
+          }
+          if (value === 'KHOAXN_NHANMAU') {
+            value = 'Khoa XN Nhận Mẫu'
+          }
+          if (value === 'KHOALS_LAYMAU') {
+            value = 'Khoa LS Lấy Mẫu'
+          }
+          detailHtml += `<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${value}</td>`;
+        });
+        detailHtml += `</tr>`;
+      });
+
+      detailHtml += `
+          </tbody>
+        </table>
+      `;
+      
+      modalContent.innerHTML = detailHtml;
+      modalContainer.classList.remove('hidden');
+      modalContainer.classList.add('flex');
+    }
+    
+    /**
+     * Hides the modal.
+     */
+    function hideModal() {
+      const modalContainer = document.getElementById('modalContainer');
+      modalContainer.classList.remove('flex');
+      modalContainer.classList.add('hidden');
+    }
+
+    /**
      * Handles the click event for the action button in each row.
-     * @param {string} action The type of action (e.g., 'view', 'edit', 'delete').
+     * @param {string} action The type of action (e.g., 'view', 'laymau', 'delete').
      * @param {Object} data The data object for the corresponding row.
      */
-    async function fetchAndCheckNhanMau(data) {
-      const responseData = await apiXN.fetchCheckNhanMau(data);
+     /**
+     * CHECK LẤY MẪU
+     */
+    async function fetchAndCheckLayMau(data) {
+      let check = false;
+      const responseData = await apiXN.fetchCheckLayMau(data);
       console.log(responseData);
       if (responseData.data) {
         let listData = responseData.data.data
@@ -349,9 +623,11 @@
 
         if (listData.length > 0) {
           let dataCheck = listData[0];
-          // CHECK data được phép nhận mẫu
+          // CHECK data được phép lấy mẫu
           if (dataCheck.EDIT_CHECK === "TRUE") {
+            check = true
             showNotify(dataCheck.MESSAGE_CHECK, "info");
+            return check;
           } else {
             showNotify(dataCheck.MESSAGE_CHECK, "warning");
           }
@@ -361,24 +637,147 @@
       } else {
         showNotify("Không tìm thấy dữ liệu để kiểm tra!", "warning");
       }
+      return check;
     }
-    function handleActionClick(action, data) {
+    /**
+     * CHECK NHẬN MẪU
+     */
+    async function fetchAndCheckNhanMau(data) {
+      let check = false;
+      const responseData = await apiXN.fetchCheckNhanMau(data);
+      console.log(responseData);
+      if (responseData.data) {
+        let listData = responseData.data.data
+
+        if (listData === null) {
+          showNotify("Không tìm thấy dữ liệu để kiểm tra!", "info");
+          return check;
+        }
+
+        if (listData.length > 0) {
+          let dataCheck = listData[0];
+          // CHECK data được phép nhận mẫu
+          if (dataCheck.EDIT_CHECK === "TRUE") {
+            check = true
+            showNotify(dataCheck.MESSAGE_CHECK, "info");
+            return check;
+          } else {
+            showNotify(dataCheck.MESSAGE_CHECK, "warning");
+          }
+        } else {
+          showNotify("Không tìm thấy dữ liệu để kiểm tra!!", "info");
+        }
+      } else {
+        showNotify("Không tìm thấy dữ liệu để kiểm tra!", "warning");
+      }
+      return check;
+    }
+    /**
+     * UPDATE GHI NHẬN LẤY MẪU
+     */
+    async function postGhiNhanLayMau(data) {
+      let check = false;
+
+      try {
+        const responseData = await apiXN.postGhiNhanLayMau(data);
+
+        switch (responseData.status) {
+          case 200:
+          case 201:
+            check = true;
+            showNotify(responseData.data.message, "info");
+            break;
+          case 417:
+            check = false;
+            showNotify(responseData.data.message, "error");
+            break;
+          default:
+            check = false;
+            showNotify(`Unexpected status: ${status}`, "error");
+        }
+      } catch (error) {
+        console.log(`Error posting GhiNhanLayMau: ${error}`);
+        check = false;
+      }
+
+      return check;
+    }
+    /**
+     * UPDATE GHI NHẬN NHẬN MẪU
+     */
+    async function postGhiNhanNhanMau(data) {
+      let check = false;
+
+      try {
+        const responseData = await apiXN.postGhiNhanNhanMau(data);
+
+        switch (responseData.status) {
+          case 200:
+          case 201:
+            check = true;
+            showNotify(responseData.data.message, "info");
+            break;
+          case 417:
+            check = false;
+            showNotify(responseData.data.message, "error");
+            break;
+          default:
+            check = false;
+            showNotify(`Unexpected status: ${status}`, "error");
+        }
+      } catch (error) {
+        console.log(`Error posting GhiNhanLayMau: ${error}`);
+        check = false;
+      }
+
+      return check;
+    }
+    // Handle ACTION BUTTONS
+    async function handleActionClick(action, data) {
       console.log(`Action: ${action} triggered for TIEPNHAN_ID:`, data.TIEPNHAN_ID);
-      // Here you can add your custom logic based on the action type
+
       switch (action) {
         case 'view':
-          // Logic for viewing details
           console.log('Viewing details for:', data);
+          showModal(data.LIST_GHINHAN);
           break;
-        case 'edit':
-          // Logic for editing data
-          console.log('Editing data for:', data);
-          fetchAndCheckNhanMau({ DVYEUCAU_ID: data.DVYEUCAU_ID || '0' });
+
+        case 'laymau':
+          // console.log('Laymau data for:', data);
+
+          try {
+            const check = await fetchAndCheckLayMau({ DVYEUCAU_ID: data.DVYEUCAU_ID || '0' });
+
+            if (check) {
+              let check_ghinhan = await postGhiNhanLayMau(data);
+              if (check_ghinhan) {
+                fetchAndRenderTable();
+              }
+            }
+          } catch (err) {
+            console.error("Error in laymau:", err);
+          }
           break;
+
+        case 'nhanmau':
+          try {
+            const check = await fetchAndCheckNhanMau({ DVYEUCAU_ID: data.DVYEUCAU_ID || '0' });
+
+            if (check) {
+              let check_ghinhan = await postGhiNhanNhanMau(data);
+              if (check_ghinhan) {
+                fetchAndRenderTable();
+              }
+            }
+          } catch (err) {
+            console.error("Error in nhanmau:", err);
+          }
+          break;
+
         case 'delete':
-          // Logic for deleting a record
           console.log('Deleting record for:', data);
           break;
+
         default:
           console.log('Unknown action:', action);
       }
@@ -409,10 +808,14 @@
     // Label map to control which table columns are rendered
     const tableColumnsLabels = {{ tableColumnsLabels }};
 
+    // Label map to control which table columns are rendered
+    const tableViewDetailColumnsLabels = {{ tableViewDetailColumnsLabels }};
+
     // Initial page load
     window.onload = () => {
       createFormInputs(defaultParams, defaultParamsLabels);
       fetchAndRenderTable();
+      renderUserInfor();
     };
 
     // Event listeners
@@ -428,6 +831,8 @@
 
     document.getElementById('prevBtn').addEventListener('click', () => changePage(-1));
     document.getElementById('nextBtn').addEventListener('click', () => changePage(1));
+    document.getElementById('closeModalBtn').addEventListener('click', hideModal);
+    document.getElementById('modalOverlay').addEventListener('click', hideModal);
   </script>
 </body>
 

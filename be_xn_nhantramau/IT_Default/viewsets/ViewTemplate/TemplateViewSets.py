@@ -188,6 +188,22 @@ class TemplateSetBase(
         if get_config_defaultTableViewLabels:
             tableColumnsLabels = get_config_defaultTableViewLabels
 
+        # init tableViewDetailColumnsLabels
+        tableViewDetailColumnsLabels = """
+        {
+        "TRANGTHAI": "Trạng thái",
+        "TRANGTHAI_UPDATED": "Trạng Thái",
+        "user_infor.first_name": "Tên",
+        "type": "Loại Ghi Nhận",
+        "user_infor.department_name": "Nhân Viên K/P",
+        "created_date": "Ngày Giờ Thực Hiện"
+        }
+        """
+        get_config_defaultTableViewLabels = GET_VALUE_ACTION_SYSTEM(
+            ConfigAppDefault, "OBJ_MAPPING_TABLE_VIEW_DETAIL_COLUMN_XN_ALL", "default")
+        if get_config_defaultTableViewLabels:
+            tableViewDetailColumnsLabels = get_config_defaultTableViewLabels
+
         context = {
             "host_be": settings.HOST,
             "KEY_AUTHOR": KEY_AUTHOR,
@@ -196,6 +212,7 @@ class TemplateSetBase(
             "defaultParams": mark_safe(defaultParams),
             "defaultParamsLabels": mark_safe(defaultParamsLabels),
             "tableColumnsLabels": mark_safe(tableColumnsLabels),
+            "tableViewDetailColumnsLabels": mark_safe(tableViewDetailColumnsLabels),
         }
         return TemplateResponse(request, "xn_login/xn_lab_main.html", context)
 

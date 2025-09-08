@@ -37,18 +37,20 @@
 
     <!-- Direct Links Section -->
     <div class="flex space-x-4 mb-6">
-        <a href="#" class="bg-gray-800 hover:bg-gray-900 text-white font-semibold py-2 px-6 rounded-full shadow-md transition-all duration-300 transform hover:scale-105">
-            Trang Chủ
-        </a>
-        <a href="/xn/logout" class="bg-gray-800 hover:bg-gray-900 text-white font-semibold py-2 px-6 rounded-full shadow-md transition-all duration-300 transform hover:scale-105">
-            Đăng xuất
-        </a>
+      <a href="#"
+        class="bg-gray-800 hover:bg-gray-900 text-white font-semibold py-2 px-6 rounded-full shadow-md transition-all duration-300 transform hover:scale-105">
+        Trang Chủ
+      </a>
+      <a href="/xn/logout"
+        class="bg-gray-800 hover:bg-gray-900 text-white font-semibold py-2 px-6 rounded-full shadow-md transition-all duration-300 transform hover:scale-105">
+        Đăng xuất
+      </a>
     </div>
 
     <!-- User Information Display -->
     <div id="userInfor" class="mb-6 bg-blue-50 p-6 rounded-lg border border-blue-200 hidden">
-        <h2 class="text-xl font-bold text-blue-700 mb-4">Thông tin người dùng</h2>
-        <!-- User data will be rendered here by JavaScript -->
+      <h2 class="text-xl font-bold text-blue-700 mb-4">Thông tin người dùng</h2>
+      <!-- User data will be rendered here by JavaScript -->
     </div>
 
     <!-- Parameter Input Form - now dynamic -->
@@ -119,7 +121,7 @@
       </div>
     </div>
   </div>
-  
+
   <script src="{% static 'js/XetNghiem/check_token.js' %}"></script>
   <script src="{% static 'js/XetNghiem/popup_notify.js' %}"></script>
   <script>
@@ -281,18 +283,43 @@
           label.className = 'block text-sm font-medium text-gray-700';
           label.textContent = labels[key];
 
-          const input = document.createElement('input');
-          input.id = key;
-          input.value = params[key];
-          input.className = 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2';
+          let input;
 
-          // Determine input type based on the value's format
-          if (typeof params[key] === 'number' || (typeof params[key] === 'string' && !isNaN(params[key]))) {
-            input.type = 'number';
-          } else if (/\d{4}-\d{2}-\d{2}/.test(params[key])) {
-            input.type = 'date';
+          if (key === 'ordering') {
+            // 🔹 Create a <select> for "ordering"
+            input = document.createElement('select');
+            input.id = key;
+            input.className =
+              'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2';
+
+            // Example options (customize as you need)
+            const options = listSortXN;
+
+            options.forEach(opt => {
+              const option = document.createElement('option');
+              option.value = opt.value;
+              option.textContent = opt.text;
+              if (params[key] === opt.value) {
+                option.selected = true;
+              }
+              input.appendChild(option);
+            });
           } else {
-            input.type = 'text';
+            // 🔹 Create a normal <input>
+            input = document.createElement('input');
+            input.id = key;
+            input.value = params[key];
+            input.className =
+              'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2';
+
+            // Determine input type based on the value's format
+            if (['page', 'limit'].includes(key)) {
+              input.type = 'number';
+            } else if (/\d{4}-\d{2}-\d{2}/.test(params[key])) {
+              input.type = 'date';
+            } else {
+              input.type = 'text';
+            }
           }
 
           div.appendChild(label);
@@ -312,7 +339,7 @@
       const userData = JSON.parse(userDataString);
       // Read values from the dynamically created inputs
       Array.from(formContainer.children).forEach(div => {
-        const input = div.querySelector('input');
+        const input = div.querySelector('input, select');
         if (input) {
           params[input.id] = input.value;
         }
@@ -353,6 +380,11 @@
 
           // Dynamically generate table headers based on the label map.
           columnKeys.forEach(key => {
+            // 🔹 If it's TRANGTHAI, only show when user is staff
+            if (key === 'TRANGTHAI' && !userData.is_staff) {
+              return; // skip this column
+            }
+
             const th = document.createElement('th');
             th.scope = 'col';
             th.className = 'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider';
@@ -382,6 +414,11 @@
             }
 
             columnKeys.forEach(key => {
+              // 🔹 If it's TRANGTHAI, only show when user is staff
+              if (key === 'TRANGTHAI' && !userData.is_staff) {
+                return; // skip this column
+              }
+
               const cell = document.createElement('td');
 
               if (key === 'actions') {
@@ -428,16 +465,34 @@
                 let cellContent = test[key];
 
                 // Custom formatting for specific columns
-                if (key === 'NGAYTAO' || key === 'NGAYGIOYEUCAU' || key === 'NGAYDUKIEN_THUCHIEN') {
-                  cellContent = new Date(cellContent).toLocaleString('en-GB', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit',
-                    hour12: false
-                  }).replace(',', '')
+                if (
+                  key.includes('NGAYTAO') ||
+                  key.includes('NGAYGIOYEUCAU') ||
+                  key.includes('NGAYDUKIEN_THUCHIEN') ||
+                  key.includes('created_date') ||
+                  key.includes('updated_date')
+                ) {
+                  if (cellContent) {
+                    const date = new Date(cellContent);
+                    // check valid date
+                    if (!isNaN(date.getTime())) {
+                      cellContent = date
+                        .toLocaleString('en-GB', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          second: '2-digit',
+                          hour12: false,
+                        })
+                        .replace(',', '');
+                    } else {
+                      cellContent = ''; // invalid date string → empty
+                    }
+                  } else {
+                    cellContent = ''; // null, undefined, empty → empty string
+                  }
                 } else if (key === 'TRANGTHAI') {
                   cell.classList.remove('text-gray-900');
                   if (cellContent === 'HOANTAT') {
@@ -480,17 +535,17 @@
      * Renders the user information from localStorage to a div on the page.
      */
     function renderUserInfor() {
-        const userInforDiv = document.getElementById('userInfor');
-        const userDataString = localStorage.getItem('user');
-        
-        if (!userDataString) {
-            userInforDiv.classList.add('hidden');
-            return;
-        }
+      const userInforDiv = document.getElementById('userInfor');
+      const userDataString = localStorage.getItem('user');
 
-        try {
-            const userData = JSON.parse(userDataString);
-            const userContent = `
+      if (!userDataString) {
+        userInforDiv.classList.add('hidden');
+        return;
+      }
+
+      try {
+        const userData = JSON.parse(userDataString);
+        const userContent = `
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-800 text-sm">
                     <p><strong>Tên tài khoản:</strong> ${userData.username || 'N/A'}</p>
                     <p><strong>Họ và tên:</strong> ${userData.first_name || 'N/A'} ${userData.last_name || ''}</p>
@@ -499,13 +554,13 @@
                     <p><strong>Phòng ban:</strong> ${userData.department_name || 'N/A'}</p>
                 </div>
             `;
-            userInforDiv.innerHTML = `<h2 class="text-xl font-bold text-blue-700 mb-4">Thông tin người dùng</h2>${userContent}`;
-            userInforDiv.classList.remove('hidden');
+        userInforDiv.innerHTML = `<h2 class="text-xl font-bold text-blue-700 mb-4">Thông tin người dùng</h2>${userContent}`;
+        userInforDiv.classList.remove('hidden');
 
-        } catch (e) {
-            console.error("Failed to parse user data from localStorage:", e);
-            userInforDiv.classList.add('hidden');
-        }
+      } catch (e) {
+        console.error("Failed to parse user data from localStorage:", e);
+        userInforDiv.classList.add('hidden');
+      }
     }
     /**
      * A helper function to safely get a value from a nested object key string (e.g., 'user_infor.username').
@@ -525,7 +580,7 @@
       }
       return value || '';
     }
-    
+
     /**
      * Shows a modal with detailed information for a specific row.
      * @param {Object|Array} data The data object or array for the selected row(s).
@@ -535,7 +590,7 @@
       const modalContent = document.getElementById('modalContent');
       let objectHeaderShow = tableViewDetailColumnsLabels;
       const dataArray = Array.isArray(data) ? data : [data];
-      
+
       // Use the comprehensive objectHeaderShow to define what to show.
       // Filter out keys that don't exist in the data.
       const keysToShow = Object.keys(objectHeaderShow)
@@ -546,7 +601,7 @@
           <thead class="bg-gray-50">
             <tr>
       `;
-      
+
       // Tạo header (tiêu đề cột)
       keysToShow.forEach(key => {
         let label = objectHeaderShow[key] || key;
@@ -557,19 +612,42 @@
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
       `;
-      
+
       // Tạo các hàng dữ liệu
       dataArray.forEach(item => {
         detailHtml += `<tr>`;
         keysToShow.forEach(key => {
           // Use the helper function to get the value, which can be nested.
           let value = getValueFromNestedKey(item, key);
-          
-          if (key.includes('NGAYTAO') || key.includes('NGAYGIOYEUCAU') || key.includes('NGAYDUKIEN_THUCHIEN') || key.includes('created_date') || key.includes('updated_date')) {
-            value = new Date(value).toLocaleString('en-GB', {
-              day: '2-digit', month: '2-digit', year: 'numeric',
-              hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
-            }).replace(',', '');
+
+          if (
+            key.includes('NGAYTAO') ||
+            key.includes('NGAYGIOYEUCAU') ||
+            key.includes('NGAYDUKIEN_THUCHIEN') ||
+            key.includes('created_date') ||
+            key.includes('updated_date')
+          ) {
+            if (value) {
+              const date = new Date(value);
+              // check valid date
+              if (!isNaN(date.getTime())) {
+                value = date
+                  .toLocaleString('en-GB', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false,
+                  })
+                  .replace(',', '');
+              } else {
+                value = ''; // invalid date string → empty
+              }
+            } else {
+              value = ''; // null, undefined, empty → empty string
+            }
           }
           if (value === 'KHOAXN_NHANMAU') {
             value = 'Khoa XN Nhận Mẫu'
@@ -586,12 +664,12 @@
           </tbody>
         </table>
       `;
-      
+
       modalContent.innerHTML = detailHtml;
       modalContainer.classList.remove('hidden');
       modalContainer.classList.add('flex');
     }
-    
+
     /**
      * Hides the modal.
      */
@@ -606,9 +684,9 @@
      * @param {string} action The type of action (e.g., 'view', 'laymau', 'delete').
      * @param {Object} data The data object for the corresponding row.
      */
-     /**
-     * CHECK LẤY MẪU
-     */
+    /**
+    * CHECK LẤY MẪU
+    */
     async function fetchAndCheckLayMau(data) {
       let check = false;
       const responseData = await apiXN.fetchCheckLayMau(data);
@@ -810,6 +888,9 @@
 
     // Label map to control which table columns are rendered
     const tableViewDetailColumnsLabels = {{ tableViewDetailColumnsLabels }};
+
+    // List sort 
+    const listSortXN = {{ listSortXN }};
 
     // Initial page load
     window.onload = () => {

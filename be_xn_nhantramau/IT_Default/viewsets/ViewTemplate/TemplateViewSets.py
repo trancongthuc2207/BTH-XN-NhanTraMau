@@ -41,15 +41,15 @@ from general_utils.utils import *
 from general_utils.Logging.logging_tools import LogHelper
 from general_utils.GetConfig.UtilsConfigSystem import *
 
-from IT_Default.utils.sql_server.sql_utils import sql_build_advanced_filters_and_pagination
+from IT_Default.utils.sql_server.sql_utils import (
+    sql_build_advanced_filters_and_pagination,
+)
 
 # External/Internal OAuth App
 from IT_OAUTH.serializers import *
 
 # Serializers
-from IT_FilesManager.Serializers import (
-    FilesSerializers
-)
+from IT_FilesManager.Serializers import FilesSerializers
 
 # SQL Import
 from IT_Default.queries.QueriesFPT_XN_LAYMAU_NHANMAU import *
@@ -76,7 +76,7 @@ class TemplateSetBase(
             # GET
             "get_thanhvien_upload_all",
             # PUT
-            "put_multi_id_accept_thanhvien_hoinghi_upload"
+            "put_multi_id_accept_thanhvien_hoinghi_upload",
         ]:
             return [RoleAppDefault()]
 
@@ -94,21 +94,40 @@ class TemplateSetBase(
         LIST_ROLE = []
 
         get_config = GET_VALUE_ACTION_SYSTEM(
-            ConfigAppDefault, "LIST_ROLE_FOR_XN_NHAN_MAU", "default")
+            ConfigAppDefault, "LIST_ROLE_FOR_XN_NHAN_MAU", "default"
+        )
         if get_config:
             LIST_ROLE = json.loads(get_config)
 
         KEY_AUTHOR = "BTHNOIBO"
         get_config_key_author = GET_VALUE_ACTION_SYSTEM(
-            ConfigAppOauth, "KEY_AUTHORIZATION", "default")
+            ConfigAppOauth, "KEY_AUTHORIZATION", "default"
+        )
         if get_config_key_author:
             KEY_AUTHOR = get_config_key_author
+
+        #
+        client_id = ""
+        get_config_client_id = GET_VALUE_ACTION_SYSTEM(
+            ConfigAppOauth, "CLIENT_ID_APP", "default"
+        )
+        if get_config_client_id:
+            client_id = get_config_client_id
+
+        client_secret = ""
+        get_config_client_secret = GET_VALUE_ACTION_SYSTEM(
+            ConfigAppOauth, "CLIENT_SECRET_APP", "default"
+        )
+        if get_config_client_secret:
+            client_secret = get_config_client_secret
 
         context = {
             "host_be": settings.HOST,
             "KEY_AUTHOR": KEY_AUTHOR,
             "LIST_ROLE": LIST_ROLE,
             "LIST_ROLE_JSON": mark_safe(json.dumps(LIST_ROLE)),
+            "client_id": client_id,
+            "client_secret": client_secret,
         }
         return TemplateResponse(request, "xn_login/xn_login.html", context)
 
@@ -125,13 +144,15 @@ class TemplateSetBase(
         # init
         LIST_ROLE = []
         get_config_role = GET_VALUE_ACTION_SYSTEM(
-            ConfigAppDefault, "LIST_ROLE_FOR_XN_NHAN_MAU", "default")
+            ConfigAppDefault, "LIST_ROLE_FOR_XN_NHAN_MAU", "default"
+        )
         if get_config_role:
             LIST_ROLE = json.loads(get_config_role)
 
         KEY_AUTHOR = "BTHNOIBO"
         get_config_key_author = GET_VALUE_ACTION_SYSTEM(
-            ConfigAppOauth, "KEY_AUTHORIZATION", "default")
+            ConfigAppOauth, "KEY_AUTHORIZATION", "default"
+        )
         if get_config_key_author:
             KEY_AUTHOR = get_config_key_author
 
@@ -148,7 +169,8 @@ class TemplateSetBase(
         }
         """
         get_config_params_default = GET_VALUE_ACTION_SYSTEM(
-            ConfigAppDefault, "OBJ_PARAMS_SEARCH_XN_ALL", "default")
+            ConfigAppDefault, "OBJ_PARAMS_SEARCH_XN_ALL", "default"
+        )
         if get_config_params_default:
             defaultParams = get_config_params_default
         # print(get_config_params_default)
@@ -166,7 +188,8 @@ class TemplateSetBase(
         }
         """
         get_config_defaultParamsLabels = GET_VALUE_ACTION_SYSTEM(
-            ConfigAppDefault, "OBJ_PARAMS_SEARCH_MAPPING_LABEL_XN_ALL", "default")
+            ConfigAppDefault, "OBJ_PARAMS_SEARCH_MAPPING_LABEL_XN_ALL", "default"
+        )
         if get_config_defaultParamsLabels:
             defaultParamsLabels = get_config_defaultParamsLabels
 
@@ -184,7 +207,8 @@ class TemplateSetBase(
         }
         """
         get_config_defaultTableViewLabels = GET_VALUE_ACTION_SYSTEM(
-            ConfigAppDefault, "OBJ_MAPPING_TABLE_COLUMN_XN_ALL", "default")
+            ConfigAppDefault, "OBJ_MAPPING_TABLE_COLUMN_XN_ALL", "default"
+        )
         if get_config_defaultTableViewLabels:
             tableColumnsLabels = get_config_defaultTableViewLabels
 
@@ -200,9 +224,23 @@ class TemplateSetBase(
         }
         """
         get_config_defaultTableViewLabels = GET_VALUE_ACTION_SYSTEM(
-            ConfigAppDefault, "OBJ_MAPPING_TABLE_VIEW_DETAIL_COLUMN_XN_ALL", "default")
+            ConfigAppDefault, "OBJ_MAPPING_TABLE_VIEW_DETAIL_COLUMN_XN_ALL", "default"
+        )
         if get_config_defaultTableViewLabels:
             tableViewDetailColumnsLabels = get_config_defaultTableViewLabels
+
+        # init listSortXN
+        listSortXN = """
+        [
+              { value: '-NGAYTAO', text: 'Thời gian tạo gần đây' },
+              { value: 'NGAYTAO', text: 'Thời gian tạo xa nhất' },
+            ]
+        """
+        get_config_listSortXN = GET_VALUE_ACTION_SYSTEM(
+            ConfigAppDefault, "LIST_SORT_FOR_FILTER_XN_ALL", "default"
+        )
+        if get_config_listSortXN:
+            listSortXN = get_config_listSortXN
 
         context = {
             "host_be": settings.HOST,
@@ -213,6 +251,7 @@ class TemplateSetBase(
             "defaultParamsLabels": mark_safe(defaultParamsLabels),
             "tableColumnsLabels": mark_safe(tableColumnsLabels),
             "tableViewDetailColumnsLabels": mark_safe(tableViewDetailColumnsLabels),
+            "listSortXN": mark_safe(listSortXN),
         }
         return TemplateResponse(request, "xn_login/xn_lab_main.html", context)
 
@@ -221,7 +260,8 @@ class TemplateSetBase(
         #
         KEY_AUTHOR = "BTHNOIBO"
         get_config_key_author = GET_VALUE_ACTION_SYSTEM(
-            ConfigAppOauth, "KEY_AUTHORIZATION", "default")
+            ConfigAppOauth, "KEY_AUTHORIZATION", "default"
+        )
         if get_config_key_author:
             KEY_AUTHOR = get_config_key_author
 

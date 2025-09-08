@@ -92,8 +92,7 @@ def return_2_seconds_add_token(request):
     if add_time_refresh_config:
         try:
             # Attempt to convert the string to an integer
-            number_add_time_expired_refresh_seconds = int(
-                add_time_refresh_config)
+            number_add_time_expired_refresh_seconds = int(add_time_refresh_config)
         except ValueError:
             logger_bug_sys.warning(
                 request,
@@ -109,8 +108,7 @@ def return_2_seconds_add_token(request):
 class UserViewSet(viewsets.ViewSet):
     queryset = User.objects.using("oauth").all()
     throttle_classes = [SuperRateThrottle]
-    parser_classes = [parsers.MultiPartParser,
-                      parsers.FormParser, parsers.JSONParser]
+    parser_classes = [parsers.MultiPartParser, parsers.FormParser, parsers.JSONParser]
 
     def get_serializer_class(self):
         if self.action == "register_user" or self.action == "register_user_by_app":
@@ -157,7 +155,8 @@ class UserViewSet(viewsets.ViewSet):
             response.set_status(ResponseBase.STATUS_OK)
             response.set_message(
                 MESSAGE_INSTANCES(
-                    "SUCCESS_LAY_DU_LIEU_THONG_TIN_NGUOI_HIEN_TAI", request.language).format(username=user.username)
+                    "SUCCESS_LAY_DU_LIEU_THONG_TIN_NGUOI_HIEN_TAI", request.language
+                ).format(username=user.username)
             )
             return Response(
                 data=response.return_response()["data_response"],
@@ -168,7 +167,8 @@ class UserViewSet(viewsets.ViewSet):
             response.set_status(ResponseBase.STATUS_UNAUTHORIZED)
             response.set_message(
                 MESSAGE_INSTANCES(
-                    "FAIL_LAY_DU_LIEU_THONG_TIN_NGUOI_HIEN_TAI", request.language)
+                    "FAIL_LAY_DU_LIEU_THONG_TIN_NGUOI_HIEN_TAI", request.language
+                )
             )
             return Response(
                 data=response.return_response()["data_response"],
@@ -178,13 +178,15 @@ class UserViewSet(viewsets.ViewSet):
             response.set_data(None)
             response.set_status(ResponseBase.STATUS_INTERNAL_SERVER_ERROR)
             response.set_message(
-                MESSAGE_INSTANCES(
-                    "DEFAULT_FAIL_LOI_HE_THONG", request.language)
+                MESSAGE_INSTANCES("DEFAULT_FAIL_LOI_HE_THONG", request.language)
             )
-            response.add_error({
-                "error": MESSAGE_INSTANCES(
-                    "DEFAULT_FAIL_LOI_HE_THONG_KEM_THEO_MESSAGE", request.language).format(message=str(e)),
-            })
+            response.add_error(
+                {
+                    "error": MESSAGE_INSTANCES(
+                        "DEFAULT_FAIL_LOI_HE_THONG_KEM_THEO_MESSAGE", request.language
+                    ).format(message=str(e)),
+                }
+            )
             return Response(
                 data=response.return_response()["data_response"],
                 status=response.return_response()["status_response"],
@@ -228,11 +230,19 @@ class UserViewSet(viewsets.ViewSet):
 
         # Handle validation errors collected by assign_fields_to_instance
         if hasattr(response, "list_errors") and response.list_errors:
-            if hasattr(response.list_errors, "entities_error") and hasattr(response.list_errors, "servers_error"):
-                if response.list_errors["entities_error"] or response.list_errors["servers_error"]:
+            if hasattr(response.list_errors, "entities_error") and hasattr(
+                response.list_errors, "servers_error"
+            ):
+                if (
+                    response.list_errors["entities_error"]
+                    or response.list_errors["servers_error"]
+                ):
                     response.set_data = None
-                    response.set_message(MESSAGE_INSTANCES(
-                        "DEFAULT_FAIL_DU_LIEU_KHONG_HOP_LE", request.language))
+                    response.set_message(
+                        MESSAGE_INSTANCES(
+                            "DEFAULT_FAIL_DU_LIEU_KHONG_HOP_LE", request.language
+                        )
+                    )
                     response.set_status(ResponseBase.STATUS_BAD_REQUEST)
                     return Response(
                         data=response.return_response()["data_response"],
@@ -254,8 +264,9 @@ class UserViewSet(viewsets.ViewSet):
             )
 
             response.set_data = None
-            response.set_message(MESSAGE_INSTANCES(
-                "FAIL_OAUTH_YEU_CAU_NHAP_MATKHAU", request.language))
+            response.set_message(
+                MESSAGE_INSTANCES("FAIL_OAUTH_YEU_CAU_NHAP_MATKHAU", request.language)
+            )
             response.set_status(ResponseBase.STATUS_BAD_REQUEST)
             return Response(
                 data=response.return_response()["data_response"],
@@ -272,8 +283,11 @@ class UserViewSet(viewsets.ViewSet):
                 }
             )
             response.set_data = None
-            response.set_message(MESSAGE_INSTANCES(
-                "FAIL_OAUTH_MATKHAU_XACNHAN_KHONG_KHOP", request.language))
+            response.set_message(
+                MESSAGE_INSTANCES(
+                    "FAIL_OAUTH_MATKHAU_XACNHAN_KHONG_KHOP", request.language
+                )
+            )
             response.set_status(ResponseBase.STATUS_BAD_REQUEST)
             return Response(
                 data=response.return_response()["data_response"],
@@ -284,8 +298,11 @@ class UserViewSet(viewsets.ViewSet):
             # Check for duplicate username/email after basic field assignment
             if User.objects.using("oauth").filter(username=new_user.username).exists():
                 response.set_data = None
-                response.set_message(MESSAGE_INSTANCES(
-                    "FAIL_OAUTH_USERNAME_DA_DUOC_SUDUNG", request.language))
+                response.set_message(
+                    MESSAGE_INSTANCES(
+                        "FAIL_OAUTH_USERNAME_DA_DUOC_SUDUNG", request.language
+                    )
+                )
                 response.set_status(ResponseBase.STATUS_BAD_REQUEST)
                 return Response(
                     data=response.return_response()["data_response"],
@@ -297,8 +314,11 @@ class UserViewSet(viewsets.ViewSet):
                 and User.objects.using("oauth").filter(email=new_user.email).exists()
             ):
                 response.set_data = None
-                response.set_message(MESSAGE_INSTANCES(
-                    "FAIL_OAUTH_EMAIL_DA_DUOC_SUDUNG", request.language))
+                response.set_message(
+                    MESSAGE_INSTANCES(
+                        "FAIL_OAUTH_EMAIL_DA_DUOC_SUDUNG", request.language
+                    )
+                )
                 response.set_status(ResponseBase.STATUS_BAD_REQUEST)
                 return Response(
                     data=response.return_response()["data_response"],
@@ -312,7 +332,8 @@ class UserViewSet(viewsets.ViewSet):
             response.set_status(ResponseBase.STATUS_CREATED)
             response.set_message(
                 MESSAGE_INSTANCES(
-                    "SUCCESS_OAUTH_DANGKY_NGUOIDUNG", request.language).format(username=new_user.username)
+                    "SUCCESS_OAUTH_DANGKY_NGUOIDUNG", request.language
+                ).format(username=new_user.username)
             )
 
             return Response(
@@ -326,12 +347,17 @@ class UserViewSet(viewsets.ViewSet):
             response.set_status(ResponseBase.STATUS_INTERNAL_SERVER_ERROR)
             response.set_message(
                 MESSAGE_INSTANCES(
-                    "DEFAULT_FAIL_LOI_HE_THONG_TAO_DU_LIEU_CHUNG", request.language)
+                    "DEFAULT_FAIL_LOI_HE_THONG_TAO_DU_LIEU_CHUNG", request.language
+                )
             )
-            response.add_error({
-                "error": MESSAGE_INSTANCES(
-                    "DEFAULT_FAIL_LOI_HE_THONG_TAO_DU_LIEU_KEM_THEO_MESSAGE", request.language).format(message=str(e)),
-            })
+            response.add_error(
+                {
+                    "error": MESSAGE_INSTANCES(
+                        "DEFAULT_FAIL_LOI_HE_THONG_TAO_DU_LIEU_KEM_THEO_MESSAGE",
+                        request.language,
+                    ).format(message=str(e)),
+                }
+            )
             return Response(
                 data=response.return_response()["data_response"],
                 status=response.return_response()["status_response"],
@@ -351,11 +377,9 @@ class UserViewSet(viewsets.ViewSet):
             return action
 
         data_post = request.data.copy()
-        data_post.appendlist('language', request.language)
+        data_post.appendlist("language", request.language)
         # truyền body data vào Check Dữ Liệu
-        serializer = UserAuthenticationSerializers.UserLoginSerializer(
-            data=data_post
-        )
+        serializer = UserAuthenticationSerializers.UserLoginSerializer(data=data_post)
         if serializer.is_valid():
             user = serializer.validated_data["user"]
             # Use .get() to handle the None case gracefully
@@ -387,8 +411,7 @@ class UserViewSet(viewsets.ViewSet):
                     # IT_OAUTH.. (rest of the view logic to return the token) IT_OAUTH..
 
                     token_serializer = (
-                        AccessTokenSerializers.AccessTokenDetailSerializer(
-                            new_token)
+                        AccessTokenSerializers.AccessTokenDetailSerializer(new_token)
                     )
 
                     # data needs to be encoded
@@ -415,8 +438,7 @@ class UserViewSet(viewsets.ViewSet):
                     # Set Data
                     response.set_data(data_hash)
                     response.set_message(
-                        MESSAGE_INSTANCES("SUCCESS_DANG_NHAP",
-                                          request.language)
+                        MESSAGE_INSTANCES("SUCCESS_DANG_NHAP", request.language)
                     )
                     response.set_status(ResponseBase.STATUS_CREATED)
                     # --- Logging --- #
@@ -435,8 +457,9 @@ class UserViewSet(viewsets.ViewSet):
             except Exception as e:
                 # Set Data
                 response.set_data(None)
-                response.set_message(MESSAGE_INSTANCES("FAIL_DANG_NHAP_LOI_HE_THONG",
-                                                       request.language))
+                response.set_message(
+                    MESSAGE_INSTANCES("FAIL_DANG_NHAP_LOI_HE_THONG", request.language)
+                )
                 response.add_error({"server": str(e)})
                 response.set_status(ResponseBase.STATUS_BAD_GATEWAY)
                 # --- Logging --- #
@@ -455,8 +478,9 @@ class UserViewSet(viewsets.ViewSet):
         else:
             # IT_OAUTH.. (your existing error handling logic) IT_OAUTH..
             # (This part can remain the same, as the serializer handles the validation errors)
-            error_message = MESSAGE_INSTANCES("FAIL_LOI_DU_LIEU",
-                                              request.language)
+            error_message = MESSAGE_INSTANCES(
+                "DEFAULT_FAIL_LOI_HE_THONG", request.language
+            )
             errors = serializer.errors
             if "non_field_errors" in errors:
                 error_detail = errors["non_field_errors"][0]
@@ -506,8 +530,9 @@ class UserViewSet(viewsets.ViewSet):
 
             # Trả
             response.set_data(None)
-            response.set_message(MESSAGE_INSTANCES("SUCCESS_DANG_XUAT",
-                                                   request.language))
+            response.set_message(
+                MESSAGE_INSTANCES("SUCCESS_DANG_XUAT", request.language)
+            )
             response.set_status(ResponseBase.STATUS_OK)
 
             return Response(
@@ -519,8 +544,11 @@ class UserViewSet(viewsets.ViewSet):
             # or if the user is authenticated via another method (like sessions).
             # Trả
             response.set_data(None)
-            response.set_message(MESSAGE_INSTANCES("FAIL_DANG_XUAT_KHONG_CO_PHIEN_DANGNHAP",
-                                                   request.language))
+            response.set_message(
+                MESSAGE_INSTANCES(
+                    "FAIL_DANG_XUAT_KHONG_CO_PHIEN_DANGNHAP", request.language
+                )
+            )
             response.set_status(ResponseBase.STATUS_BAD_REQUEST)
             return Response(
                 data=response.return_response()["data_response"],
@@ -538,8 +566,7 @@ class UserViewSet(viewsets.ViewSet):
         Refreshes an expired access token using a valid refresh token.
         """
         response = ResponseBase()
-        serializer = AccessTokenSerializers.TokenRefreshSerializer(
-            data=request.data)
+        serializer = AccessTokenSerializers.TokenRefreshSerializer(data=request.data)
 
         if serializer.is_valid():
             try:
@@ -564,8 +591,7 @@ class UserViewSet(viewsets.ViewSet):
                     )
 
                     token_serializer = (
-                        AccessTokenSerializers.AccessTokenDetailSerializer(
-                            new_token)
+                        AccessTokenSerializers.AccessTokenDetailSerializer(new_token)
                     )
                     user_serializer = UserBaseShow(user)
 
@@ -590,8 +616,7 @@ class UserViewSet(viewsets.ViewSet):
 
                     response.set_data(string_response_token)
                     response.set_message(
-                        MESSAGE_INSTANCES("SUCCESS_LAMMOI_TOKEN",
-                                          request.language)
+                        MESSAGE_INSTANCES("SUCCESS_LAMMOI_TOKEN", request.language)
                     )
                     response.set_status(ResponseBase.STATUS_CREATED)
 
@@ -602,8 +627,9 @@ class UserViewSet(viewsets.ViewSet):
 
             except Exception as e:
                 response.set_data(None)
-                response.set_message(MESSAGE_INSTANCES("FAIL_LAMMOI_TOKEN_DO_HE_THONG",
-                                                       request.language))
+                response.set_message(
+                    MESSAGE_INSTANCES("FAIL_LAMMOI_TOKEN_DO_HE_THONG", request.language)
+                )
                 response.add_error({"error": str(e)})
                 response.set_status(ResponseBase.STATUS_BAD_REQUEST)
                 return Response(
@@ -614,8 +640,9 @@ class UserViewSet(viewsets.ViewSet):
         else:
             # Handle serializer validation errors
             response.set_data(None)
-            response.set_message(MESSAGE_INSTANCES("FAIL_LAMMOI_TOKEN",
-                                                   request.language))
+            response.set_message(
+                MESSAGE_INSTANCES("FAIL_LAMMOI_TOKEN", request.language)
+            )
             response.add_error({"error": serializer.errors})
             response.set_status(ResponseBase.STATUS_UNAUTHORIZED)
             return Response(
@@ -642,8 +669,9 @@ class UserViewSet(viewsets.ViewSet):
 
         if not all([old_password, new_password, confirm_password]):
             response.set_data(None)
-            response.set_message(MESSAGE_INSTANCES("FAIL_DOI_MATKHAU_NHAP_THIEU",
-                                                   request.language))
+            response.set_message(
+                MESSAGE_INSTANCES("FAIL_DOI_MATKHAU_NHAP_THIEU", request.language)
+            )
             response.set_status(ResponseBase.STATUS_BAD_REQUEST)
             return Response(
                 data=response.return_response()["data_response"],
@@ -652,8 +680,11 @@ class UserViewSet(viewsets.ViewSet):
 
         if not user.check_password(old_password):
             response.set_data(None)
-            response.set_message(MESSAGE_INSTANCES("FAIL_DOI_MATKHAU_MAT_KHAU_KHONG_CHINH_XAC",
-                                                   request.language))
+            response.set_message(
+                MESSAGE_INSTANCES(
+                    "FAIL_DOI_MATKHAU_MAT_KHAU_KHONG_CHINH_XAC", request.language
+                )
+            )
             response.set_status(ResponseBase.STATUS_BAD_REQUEST)
             return Response(
                 data=response.return_response()["data_response"],
@@ -662,8 +693,11 @@ class UserViewSet(viewsets.ViewSet):
 
         if new_password != confirm_password:
             response.set_data(None)
-            response.set_message(MESSAGE_INSTANCES("FAIL_DOI_MATKHAU_2_MAT_KHAU_KHONG_KHOP",
-                                                   request.language))
+            response.set_message(
+                MESSAGE_INSTANCES(
+                    "FAIL_DOI_MATKHAU_2_MAT_KHAU_KHONG_KHOP", request.language
+                )
+            )
             response.set_status(ResponseBase.STATUS_BAD_REQUEST)
             return Response(
                 data=response.return_response()["data_response"],
@@ -676,8 +710,9 @@ class UserViewSet(viewsets.ViewSet):
             user.save()
 
             response.set_data(UserBaseShow(user).data)
-            response.set_message(MESSAGE_INSTANCES("SUCCESS_DOI_MATKHAU",
-                                                   request.language))
+            response.set_message(
+                MESSAGE_INSTANCES("SUCCESS_DOI_MATKHAU", request.language)
+            )
             response.set_status(ResponseBase.STATUS_OK)
             return Response(
                 data=response.return_response()["data_response"],
@@ -687,8 +722,11 @@ class UserViewSet(viewsets.ViewSet):
             # Consider keeping a basic logging mechanism for unexpected errors
             # print(f"Error changing password for user {user.username}: {e}")
             response.set_data(UserBaseShow(user).data)
-            response.set_message(MESSAGE_INSTANCES("DEFAULT_FAIL_LOI_HE_THONG_KEM_THEO_MESSAGE",
-                                                   request.language).format(message=str(e)))
+            response.set_message(
+                MESSAGE_INSTANCES(
+                    "DEFAULT_FAIL_LOI_HE_THONG_KEM_THEO_MESSAGE", request.language
+                ).format(message=str(e))
+            )
             response.set_status(ResponseBase.STATUS_INTERNAL_SERVER_ERROR)
             return Response(
                 data=response.return_response()["data_response"],

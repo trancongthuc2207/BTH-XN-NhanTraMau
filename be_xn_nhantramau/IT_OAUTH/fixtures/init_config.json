@@ -95,6 +95,22 @@
             "description": "Đây là cấu hình các trạng thái code response đang được ghi log.",
             "is_used": true,
             "type_config": "RESPONSE_LOGGING"
+        },
+        {
+            "name_config": "CLIENT_ID_APP",
+            "value": "---",
+            "status": true,
+            "description": "Đây là cấu hình application client id",
+            "is_used": true,
+            "type_config": "APPLICATION_CONFIG"
+        },
+        {
+            "name_config": "CLIENT_SECRET_APP",
+            "value": "---",
+            "status": true,
+            "description": "Đây là cấu hình application client secret",
+            "is_used": true,
+            "type_config": "APPLICATION_CONFIG"
         }
     ]
 }

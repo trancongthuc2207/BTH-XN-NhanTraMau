@@ -39,16 +39,25 @@ def sync_new_app(sender, **kwargs):
             , dvyc.TRANGTHAI
             , dvyc.DUOCPHEPTHUCHIEN
             , pb_nyc.TENPHONGBAN as PHONGBAN_YEUCAU
+            , pb_nth.TENPHONGBAN as PHONGBAN_THUCHIEN
             , bs_cd.TENNHANVIEN as TEN_BS_CD
             --, dvyc.* 
             from TT_DVYEUCAU dvyc
             left join TM_DICHVU DV on DV.DICHVU_ID = dvyc.DICHVU_ID
             LEFT JOIN TM_NHOMDICHVU NDV ON NDV.NHOMDICHVU_ID = DV.NHOMDICHVU_ID
             LEFT JOIN TM_PHONGBAN pb_nyc ON pb_nyc.PHONGBAN_ID = dvyc.NOIYEUCAU_ID
+            LEFT JOIN TM_PHONGBAN pb_nth ON pb_nth.PHONGBAN_ID = dvyc.NOITHUCHIEN_ID
             LEFT JOIN TM_NHANVIEN bs_cd ON bs_cd.NHANVIEN_ID = dvyc.BACSICHIDINH_ID
             LEFT JOIN TT_BENHNHAN bn ON bn.BENHNHAN_ID = dvyc.BENHNHAN_ID
+            LEFT JOIN TT_TIEPNHAN tt ON tt.TIEPNHAN_ID = dvyc.TIEPNHAN_ID
                         where 
-                        (CAST(bn.MAYTE AS NVARCHAR(50)) = '{{MAYTE}}' or CAST(dvyc.TIEPNHAN_ID AS NVARCHAR(50)) = '{{TIEPNHAN_ID}}')
+                        (
+                            CAST(bn.MAYTE AS NVARCHAR(50)) = '{{MAYTE}}' or CAST(dvyc.TIEPNHAN_ID AS NVARCHAR(50)) = '{{TIEPNHAN_ID}}'
+                            or CAST(tt.SOTIEPNHAN AS NVARCHAR(150)) = '{{SOTIEPNHAN}}'
+                        )
+            AND lower(pb_nth.TENPHONGBAN) like lower(N'%{{PHONGBAN_THUCHIEN}}%')
+            AND lower(pb_nyc.TENPHONGBAN) like lower(N'%{{PHONGBAN_YEUCAU}}%')
+            AND lower(dv.TENDICHVU) like lower(N'%{{TENDICHVU}}%')
             AND (CONVERT(DATE, dvyc.NGAYGIOYEUCAU) BETWEEN '{{FROM_DATE}}T00:00:00' AND '{{TO_DATE}}T23:59:59.997')
             and dvyc.DICHVU_ID in (
                 SELECT 
@@ -142,6 +151,10 @@ def sync_new_app(sender, **kwargs):
                 "value": """{
       "MAYTE": "",
       "TIEPNHAN_ID": "",
+      "SOTIEPNHAN": "",
+      "TENDICHVU": "",
+      "PHONGBAN_THUCHIEN": "",
+      "PHONGBAN_YEUCAU": "",
       "FROM_DATE": new Date().toISOString().split('T')[0],
       "TO_DATE": new Date().toISOString().split('T')[0],
       "page": "1",
@@ -161,12 +174,16 @@ def sync_new_app(sender, **kwargs):
                 "name_config": "OBJ_PARAMS_SEARCH_MAPPING_LABEL_XN_ALL",
                 "value": """{
         "MAYTE": "Mã Y Tế",
-        "TIEPNHAN_ID": "TIEPNHAN ID",
-        "FROM_DATE": "From Date",
-        "TO_DATE": "To Date",
-        "page": "Page",
-        "limit": "Limit",
-        "ordering": "Ordering"
+        "TIEPNHAN_ID": "Tiếp nhận ID",
+        "SOTIEPNHAN": "Số Tiếp Nhận",
+        "TENDICHVU": "Tên Dịch Vụ",
+        "PHONGBAN_YEUCAU": "Nơi Chỉ Định",
+        "PHONGBAN_THUCHIEN": "Nơi Thực Hiện",
+        "FROM_DATE": "Ngày chỉ định từ",
+        "TO_DATE": "Đến ngày",
+        "page": "Trang",
+        "limit": "Giới hạn",
+        "ordering": "Sắp xếp"
     }""",
                 "status": 1,
                 "description": "",
@@ -180,14 +197,17 @@ def sync_new_app(sender, **kwargs):
             defaults={
                 "name_config": "OBJ_MAPPING_TABLE_COLUMN_XN_ALL",
                 "value": """{
-        "SOPHIEUYEUCAU": "Request No.",
-        "TENDICHVU": "Service Name",
-        "TENNHOMDICHVU": "Service Group",
-        "NGAYGIOYEUCAU": "Request Date",
-        "TRANGTHAI": "Status",
-        "PHONGBAN_YEUCAU": "Request Dept.",
-        "TEN_BS_CD": "Ordering Doctor",
-        "TENNHOMDICHVU": "Tên nhóm dịch vụ",
+        "SOPHIEUYEUCAU": "Số phiếu",
+        "MAYTE": "Mã Y Tế",
+        "TENBENHNHAN": "Tên Bệnh Nhân",
+        "TENDICHVU": "Tên Dịch Vụ",
+        "TENNHOMDICHVU": "Nhóm Dịch Vụ",
+        "NGAYGIOYEUCAU": "Ngày Giờ Chỉ Định",
+        "NGAYDUKIEN_THUCHIEN": "Ngày Giờ Dự Kiến TH",
+        "TRANGTHAI": "Trạng Thái",
+        "PHONGBAN_YEUCAU": "Khoa Chỉ Định",
+        "PHONGBAN_THUCHIEN": "Khoa Thực Hiện",
+        "TEN_BS_CD": "Bác Sĩ Chỉ Định",
         "actions": "Actions"
     }""",
                 "status": 1,
@@ -296,6 +316,27 @@ def sync_new_app(sender, **kwargs):
                 "description": "",
                 "is_used": "",
                 "type_config": "XN_TABLE_VIEW_DETAIL_GHINHAN_CONFIG",
+            },
+        )
+
+        config = ConfigApp.objects.get_or_create(
+            id=11,
+            defaults={
+                "name_config": "LIST_SORT_FOR_FILTER_XN_ALL",
+                "value": """
+                [
+                { value: '-NGAYTAO', text: 'Thời gian tạo gần đây' },
+                { value: 'NGAYTAO', text: 'Thời gian tạo xa nhất' },
+                { value: '-NGAYGIOYEUCAU ', text: 'Thời gian chỉ định gần đây' },
+                { value: 'NGAYGIOYEUCAU ', text: 'Thời gian chỉ định xa nhất' },
+                { value: '-NGAYDUKIEN_THUCHIEN ', text: 'Thời gian dự kiến thực hiện gần đây' },
+                { value: 'NGAYDUKIEN_THUCHIEN ', text: 'Thời gian dự kiến thực hiện xa nhất' },
+                ]
+                """,
+                "status": 1,
+                "description": "",
+                "is_used": "",
+                "type_config": "XN_LIST_SORT_CONFIG",
             },
         )
     except Exception as e:

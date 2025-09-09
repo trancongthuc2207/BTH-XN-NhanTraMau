@@ -242,6 +242,36 @@ class TemplateSetBase(
         if get_config_listSortXN:
             listSortXN = get_config_listSortXN
 
+        # init listColumnExceptOnClient
+        listColumnExceptOnClient = """
+        ['TRANGTHAI', 'DUOCPHEPTHUCHIEN', 'ANOTHER_KEY']
+        """
+        get_config_listColumnExceptOnClient = GET_VALUE_ACTION_SYSTEM(
+            ConfigAppDefault, "LIST_COLUMN_EXCEPT_OF_CLIENT_XN_ALL", "default"
+        )
+        if get_config_listColumnExceptOnClient:
+            listColumnExceptOnClient = get_config_listColumnExceptOnClient
+
+        # init listCodePBRenderLayMau
+        listCodePBRenderLayMau = """
+        ['PKTT', 'GPB', 'ANOTHER_KEY']
+        """
+        get_config_listCodePBRenderLayMau = GET_VALUE_ACTION_SYSTEM(
+            ConfigAppDefault, "LIST_CODE_PB_RENDER_BUTTON_THUCHIEN_LAYMAU", "default"
+        )
+        if get_config_listCodePBRenderLayMau:
+            listCodePBRenderLayMau = get_config_listCodePBRenderLayMau
+
+        # init listCodePBRenderNhanMau
+        listCodePBRenderNhanMau = """
+        ['PKTT', 'GPB', 'ANOTHER_KEY']
+        """
+        get_config_listCodePBRenderNhanMau = GET_VALUE_ACTION_SYSTEM(
+            ConfigAppDefault, "LIST_CODE_PB_RENDER_BUTTON_THUCHIEN_NHANMAU", "default"
+        )
+        if get_config_listCodePBRenderNhanMau:
+            listCodePBRenderNhanMau = get_config_listCodePBRenderNhanMau
+
         context = {
             "host_be": settings.HOST,
             "KEY_AUTHOR": KEY_AUTHOR,
@@ -252,6 +282,9 @@ class TemplateSetBase(
             "tableColumnsLabels": mark_safe(tableColumnsLabels),
             "tableViewDetailColumnsLabels": mark_safe(tableViewDetailColumnsLabels),
             "listSortXN": mark_safe(listSortXN),
+            "listColumnExceptOnClient": mark_safe(listColumnExceptOnClient),
+            "listCodePBRenderLayMau": mark_safe(listCodePBRenderLayMau),
+            "listCodePBRenderNhanMau": mark_safe(listCodePBRenderNhanMau)
         }
         return TemplateResponse(request, "xn_login/xn_lab_main.html", context)
 

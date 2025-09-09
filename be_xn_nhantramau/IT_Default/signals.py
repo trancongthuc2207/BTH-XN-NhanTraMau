@@ -67,12 +67,13 @@ def sync_new_app(sender, **kwargs):
                 WHERE LEFT(NDV.MANHOMDICHVU, 2) = '01'
                 AND DV.MADICHVU NOT LIKE N'%.%'
             )
-            and dvyc.DUOCPHEPTHUCHIEN = 1
+            and dvyc.DUOCPHEPTHUCHIEN in (0,1)
             """,
                 "status": 1,
                 "description": "",
                 "is_used": "",
                 "type_config": "SQL_STATEMENT_CONFIG_XN",
+                "description": "SQL Lấy các chỉ định xn theo tiêu chí (sẽ mapping với OBJ_PARAMS_SEARCH_XN_ALL)"
             },
         )
 
@@ -141,6 +142,7 @@ def sync_new_app(sender, **kwargs):
                 "description": "",
                 "is_used": "",
                 "type_config": "XN_ROLE_NHANMAU_CONFIG",
+                "description": "Danh sách code role để đăng nhập vào ghi nhận mẫu"
             },
         )
 
@@ -165,6 +167,7 @@ def sync_new_app(sender, **kwargs):
                 "description": "",
                 "is_used": "",
                 "type_config": "XN_FORM_SEARCH_NHANMAU_CONFIG",
+                "description": "Danh sách các biến tìm kiếm ở màn hình xn main"
             },
         )
 
@@ -189,6 +192,7 @@ def sync_new_app(sender, **kwargs):
                 "description": "",
                 "is_used": "",
                 "type_config": "XN_FORM_SEARCH_NHANMAU_CONFIG",
+                "description": "Danh sách mapping các biến tìm kiếm và tên ở màn hình xn main"
             },
         )
 
@@ -205,6 +209,7 @@ def sync_new_app(sender, **kwargs):
         "NGAYGIOYEUCAU": "Ngày Giờ Chỉ Định",
         "NGAYDUKIEN_THUCHIEN": "Ngày Giờ Dự Kiến TH",
         "TRANGTHAI": "Trạng Thái",
+        "DUOCPHEPTHUCHIEN": "Được Phép Thực Hiện",
         "PHONGBAN_YEUCAU": "Khoa Chỉ Định",
         "PHONGBAN_THUCHIEN": "Khoa Thực Hiện",
         "TEN_BS_CD": "Bác Sĩ Chỉ Định",
@@ -214,6 +219,7 @@ def sync_new_app(sender, **kwargs):
                 "description": "",
                 "is_used": "",
                 "type_config": "XN_TABLE_VIEW_NHANMAU_CONFIG",
+                "description": "Danh sách tên cột mapping với data trả về (giữ actions, k đc xóa)"
             },
         )
 
@@ -248,6 +254,7 @@ def sync_new_app(sender, **kwargs):
                 "description": "",
                 "is_used": "",
                 "type_config": "SQL_STATEMENT_CHECK_ACTION_CONFIG_XN",
+                "description": "SQL kiểm tra chỉ định có được lấy mẫu hay k (chưa tính điều kiện ở code)"
             },
         )
 
@@ -281,6 +288,7 @@ def sync_new_app(sender, **kwargs):
                 "description": "",
                 "is_used": "",
                 "type_config": "SQL_STATEMENT_CHECK_ACTION_CONFIG_XN",
+                "description": "SQL kiểm tra chỉ định có được nhận mẫu hay k (chưa tính điều kiện ở code)"
             },
         )
 
@@ -297,6 +305,7 @@ def sync_new_app(sender, **kwargs):
                 "description": "",
                 "is_used": "",
                 "type_config": "SQL_STATEMENT_CHECK_ACTION_CONFIG_XN",
+                "description": "SQL cập nhật trạng thái"
             },
         )
 
@@ -316,6 +325,7 @@ def sync_new_app(sender, **kwargs):
                 "description": "",
                 "is_used": "",
                 "type_config": "XN_TABLE_VIEW_DETAIL_GHINHAN_CONFIG",
+                "description": "Đây là danh sách cột mapping để hiện thị chi tiết."
             },
         )
 
@@ -337,6 +347,52 @@ def sync_new_app(sender, **kwargs):
                 "description": "",
                 "is_used": "",
                 "type_config": "XN_LIST_SORT_CONFIG",
+                "description": "Danh sách sắp xếp ở màn hình main ghi nhận xn."
+            },
+        )
+
+        config = ConfigApp.objects.get_or_create(
+            id=12,
+            defaults={
+                "name_config": "LIST_COLUMN_EXCEPT_OF_CLIENT_XN_ALL",
+                "value": """
+                ['TRANGTHAI', 'DUOCPHEPTHUCHIEN', 'ANOTHER_KEY']
+                """,
+                "status": 1,
+                "description": "",
+                "is_used": "",
+                "type_config": "XN_LIST_NOT_SHOW_CONFIG",
+                "description": "Đây là danh sách cột được thể hiện ở nhân viên is_staff = 1 và client sẽ không thấy."
+            },
+        )
+        
+        config = ConfigApp.objects.get_or_create(
+            id=13,
+            defaults={
+                "name_config": "LIST_CODE_PB_RENDER_BUTTON_THUCHIEN_LAYMAU",
+                "value": """
+                ['PKTT', 'GPB', 'ANOTHER_KEY']
+                """,
+                "status": 1,
+                "description": "",
+                "is_used": "",
+                "type_config": "XN_LIST_PB_CONFIG",
+                "description": "Đây là danh sách phòng ban được hiện Nút Lấy mẫu"
+            },
+        )
+        
+        config = ConfigApp.objects.get_or_create(
+            id=14,
+            defaults={
+                "name_config": "LIST_CODE_PB_RENDER_BUTTON_THUCHIEN_NHANMAU",
+                "value": """
+                ['PKTT', 'GPB', 'ANOTHER_KEY']
+                """,
+                "status": 1,
+                "description": "",
+                "is_used": "",
+                "type_config": "XN_LIST_PB_CONFIG",
+                "description": "Đây là danh sách phòng ban được hiện Nút Nhận mẫu"
             },
         )
     except Exception as e:

@@ -7,8 +7,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lab Test Results</title>
   <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  {% comment %} <script src="https://cdn.tailwindcss.com"></script> {% endcomment %}
+  <script src="{% static 'js/tailwindcss/cdn.tailwindcss_3_4_17.js' %}"></script>
+  {% comment %} <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"> {% endcomment %}
   <style>
     body {
       font-family: 'Inter', sans-serif;
@@ -337,6 +338,7 @@
       const formContainer = document.getElementById('paramsForm');
       const userDataString = localStorage.getItem('user');
       const userData = JSON.parse(userDataString);
+      const skipKeys = listColumnExceptOnClient;
       // Read values from the dynamically created inputs
       Array.from(formContainer.children).forEach(div => {
         const input = div.querySelector('input, select');
@@ -380,9 +382,8 @@
 
           // Dynamically generate table headers based on the label map.
           columnKeys.forEach(key => {
-            // 🔹 If it's TRANGTHAI, only show when user is staff
-            if (key === 'TRANGTHAI' && !userData.is_staff) {
-              return; // skip this column
+            if (skipKeys.includes(key) && !userData.is_staff) {
+                return; // skip this column
             }
 
             const th = document.createElement('th');
@@ -395,7 +396,6 @@
           // Render the data rows.
           labTests.forEach(test => {
             const row = document.createElement('tr');
-            //row.className = 'hover:bg-gray-50 transition-colors duration-200';
 
             // Set background color based on status
             if (test.LIST_GHINHAN.length > 0) {
@@ -414,16 +414,15 @@
             }
 
             columnKeys.forEach(key => {
-              // 🔹 If it's TRANGTHAI, only show when user is staff
-              if (key === 'TRANGTHAI' && !userData.is_staff) {
+              if (skipKeys.includes(key) && !userData.is_staff) {
                 return; // skip this column
               }
 
               const cell = document.createElement('td');
-
+              
+              // Create a container for the action buttons
+              const buttonContainer = document.createElement('div');
               if (key === 'actions') {
-                // Create a container for the action buttons
-                const buttonContainer = document.createElement('div');
                 buttonContainer.className = 'flex space-x-2';
 
                 // View Details button
@@ -451,19 +450,28 @@
                 deleteButton.onclick = () => handleActionClick('delete', test);
 
                 buttonContainer.appendChild(viewButton);
-                buttonContainer.appendChild(laymauButton);
-                buttonContainer.appendChild(nhanmauButton);
+
+                if (listCodePBRenderLayMau.includes(userData.department_code) || userData.is_staff) {
+                    buttonContainer.appendChild(laymauButton);
+                }
+                if (listCodePBRenderNhanMau.includes(userData.department_code) || userData.is_staff) {
+                    buttonContainer.appendChild(nhanmauButton);
+                }
                 if (userData.is_staff) {
                   buttonContainer.appendChild(deleteButton);
                 }
 
                 cell.className = 'px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900';
-                cell.appendChild(buttonContainer);
+                
+                // Được phép tạo nút
+                if ("DUOCPHEPTHUCHIEN" in test && test.DUOCPHEPTHUCHIEN === "1") {
+                  cell.appendChild(buttonContainer);
+                }
+                
               } else {
                 cell.className = 'px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900';
 
                 let cellContent = test[key];
-
                 // Custom formatting for specific columns
                 if (
                   key.includes('NGAYTAO') ||
@@ -504,6 +512,11 @@
 
                 cell.textContent = cellContent;
               }
+              
+              // Cập nhật màu Nếu ko được phép thực hiện
+              if ("DUOCPHEPTHUCHIEN" in test && test.DUOCPHEPTHUCHIEN === "0") {
+                cell.classList.add('bg-gray-200','text-gray-500');
+              }
 
               row.appendChild(cell);
             });
@@ -515,7 +528,7 @@
           const noDataCell = document.createElement('td');
           noDataCell.colSpan = Object.keys(tableColumnsLabels).length > 0 ? Object.keys(tableColumnsLabels).length : 10;
           noDataCell.className = 'text-center py-8 text-gray-500';
-          noDataCell.textContent = 'No lab test data found.';
+          noDataCell.textContent = 'Không tìm thấy dữ liệu.';
           noDataRow.appendChild(noDataCell);
           tableBody.appendChild(noDataRow);
         }
@@ -891,6 +904,13 @@
 
     // List sort 
     const listSortXN = {{ listSortXN }};
+
+    // List Column Exception
+    const listColumnExceptOnClient = {{ listColumnExceptOnClient }};
+
+    // List CODE PB Render
+    const listCodePBRenderLayMau = {{ listCodePBRenderLayMau }};
+    const listCodePBRenderNhanMau = {{ listCodePBRenderNhanMau }};
 
     // Initial page load
     window.onload = () => {

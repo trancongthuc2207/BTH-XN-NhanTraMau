@@ -1,0 +1,1556 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trang Web Cấu Hình</title>
+    <!-- Tailwind CSS -->
+    <script src="{% static 'js/tailwindcss/cdn.tailwindcss_3_4_17.js' %}"></script>
+    <script src="{% static 'js/xlsx/xlsx.0.18.5.full.min.js' %}"></script>
+    <link
+      rel="stylesheet"
+      src="{% static 'css/all.6.0.0-beta3.min.css' %}"
+    />
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #f3f4f6;
+      }
+      .table-container {
+        max-height: 60vh;
+        overflow-y: auto;
+      }
+      .notification {
+        animation: fade-in-out 5s forwards;
+      }
+      @keyframes fade-in-out {
+        0% {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+        10% {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        90% {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        100% {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+      }
+      /* Thêm một con trỏ kiểu pointer để người dùng biết dòng có thể nhấp vào */
+      .table-row-clickable {
+        cursor: pointer;
+      }
+      /* Thêm con trỏ cho các tiêu đề có thể sắp xếp */
+      .sortable-header {
+        cursor: pointer;
+        user-select: none;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-100 p-4">
+    <!-- Notification container -->
+    <div id="notify-container" class="fixed top-5 right-5 space-y-3 z-50"></div>
+
+    <!-- Loading Popup Overlay -->
+  <div id="loadingPopup" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center transition-opacity duration-300 opacity-0 pointer-events-none z-50">
+    <div class="bg-white p-8 rounded-xl shadow-2xl flex flex-col items-center">
+      <!-- Spinner -->
+      <div class="animate-spin rounded-full h-12 w-12 border-4 border-t-4 border-indigo-600 border-t-transparent"></div>
+      <!-- Loading Text -->
+      <p class="mt-4 text-gray-700 font-medium">Đang tải dữ liệu...</p>
+    </div>
+  </div>
+
+    <!-- Confirmation Modal -->
+    <div
+      id="confirmation-modal"
+      class="hidden fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50"
+    >
+      <div class="bg-white p-6 rounded-lg shadow-xl w-96">
+        <h3 id="modal-title" class="text-xl font-bold mb-4 text-gray-800">
+          Xác nhận
+        </h3>
+        <p id="modal-message" class="text-gray-700 mb-6"></p>
+        <div class="flex justify-end space-x-4">
+          <button
+            id="modal-cancel"
+            class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md font-semibold hover:bg-gray-300 transition-colors"
+          >
+            Hủy bỏ
+          </button>
+          <button
+            id="modal-confirm"
+            class="px-4 py-2 bg-indigo-600 text-white rounded-md font-semibold hover:bg-indigo-700 transition-colors"
+          >
+            Xác nhận
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main container where sections will be rendered -->
+    <div id="main-container" class="space-y-12"></div>
+
+    <script>
+      // --- API Mock-up (thay thế bằng API thực tế của bạn) ---
+      // Giả lập dữ liệu trả về từ API.
+      const mockApi = {
+        "xn-nhan-mau": async (params) => {
+          console.log("Fetching data for xn-nhan-mau with params:", params);
+          await new Promise((resolve) => setTimeout(resolve, 500));
+          return {
+            data: {
+              data: [
+                {
+                  TIEPNHAN_ID: 1,
+                  SOPHIEUYEUCAU: "XN-12345",
+                  TENDICHVU: "Xét nghiệm máu",
+                  NGAYGIOYEUCAU: "2025-09-08T10:00:00Z",
+                  TRANGTHAI: "HOANTAT",
+                },
+                {
+                  TIEPNHAN_ID: 2,
+                  SOPHIEUYEUCAU: "XN-12346",
+                  TENDICHVU: "Xét nghiệm nước tiểu",
+                  NGAYGIOYEUCAU: "2025-09-08T11:30:00Z",
+                  TRANGTHAI: "DANGXULY",
+                },
+                {
+                  TIEPNHAN_ID: 3,
+                  SOPHIEUYEUCAU: "XN-12347",
+                  TENDICHVU: "Siêu âm",
+                  NGAYGIOYEUCAU: "2025-09-08T14:00:00Z",
+                  TRANGTHAI: "HOANTAT",
+                },
+              ],
+              infor_more: { count_all: 3 },
+            },
+          };
+        },
+        products: async (params) => {
+          console.log("Fetching data for products with params:", params);
+          await new Promise((resolve) => setTimeout(resolve, 500));
+          return {
+            data: {
+              data: [
+                {
+                  id: 101,
+                  name: "Laptop Gaming",
+                  category: "electronics",
+                  price: 2500,
+                  in_stock: true,
+                },
+                {
+                  id: 102,
+                  name: "Bàn phím cơ",
+                  category: "accessories",
+                  price: 150,
+                  in_stock: false,
+                },
+                {
+                  id: 103,
+                  name: 'Màn hình 27"',
+                  category: "electronics",
+                  price: 400,
+                  in_stock: true,
+                },
+              ],
+              infor_more: { count_all: 3 },
+            },
+          };
+        },
+        users: async (params) => {
+          console.log("Fetching data for users with params:", params);
+          await new Promise((resolve) => setTimeout(resolve, 500));
+          return {
+            data: {
+              data: [
+                {
+                  id: 101,
+                  first_name: "Trần Công Thức",
+                  email: "thuc@example.com",
+                  role: "admin",
+                },
+                {
+                  id: 102,
+                  first_name: "Nguyễn Văn A",
+                  email: "nguyenvana@example.com",
+                  role: "user",
+                },
+                {
+                  id: 103,
+                  first_name: "Lê Thị B",
+                  email: "lethib@example.com",
+                  role: "guest",
+                },
+              ],
+              infor_more: { count_all: 3 },
+            },
+          };
+        },
+      };
+
+      // --- Cấu hình trang web (Đây là nơi bạn tùy chỉnh mọi thứ) ---
+      const pageConfig = [
+        {
+          id: "lab-tests",
+          title: "Kết Quả Xét Nghiệm Lab",
+          apiEndpoint: "xn-nhan-mau",
+          keyColumn: "TIEPNHAN_ID", // Dùng để xác định hàng đã chọn
+          formParams: {
+            FROM_DATE: { value: "2025-08-24", type: "date" },
+            TO_DATE: { value: "2025-08-29", type: "date" },
+            limit: { value: "100", type: "number" },
+          },
+          formLabels: {
+            FROM_DATE: "Từ Ngày",
+            TO_DATE: "Đến Ngày",
+            limit: "Giới Hạn",
+          },
+          tableColumns: {
+            SOPHIEUYEUCAU: "Số Phiếu Yêu Cầu",
+            TENDICHVU: "Tên Dịch Vụ",
+            NGAYGIOYEUCAU: "Ngày Yêu Cầu",
+            TRANGTHAI: "Trạng Thái",
+          },
+          actionButtons: [
+            {
+              label: "Xem",
+              onClick: (data) => console.log("Xem dữ liệu xét nghiệm:", data),
+              className:
+                "bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-1 px-3 rounded-full text-xs shadow-sm transition-all duration-200",
+              reloadOnSuccess: false,
+            },
+            {
+              label: "Sửa",
+              onClick: (data) => console.log("Sửa dữ liệu xét nghiệm:", data),
+              className:
+                "bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-1 px-3 rounded-full text-xs shadow-sm transition-all duration-200",
+              mode: "edit",
+              confirmMessage:
+                "Bạn có chắc chắn muốn lưu các thay đổi cho dữ liệu này không?",
+              reloadOnSuccess: true,
+            },
+            {
+              label: "Xóa",
+              onClick: (data) => console.log("Xóa dữ liệu xét nghiệm:", data),
+              className:
+                "bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-3 rounded-full text-xs shadow-sm transition-all duration-200",
+              confirmMessage:
+                "Bạn có chắc chắn muốn xóa dữ liệu xét nghiệm này không? Hành động này không thể hoàn tác.",
+              reloadOnSuccess: true,
+            },
+          ],
+          externalActionButtons: [
+            {
+              label: "Xác nhận đã nhận mẫu",
+              onClick: (selectedData) => {
+                console.log("Đã chọn các mẫu sau để xác nhận:", selectedData);
+                if (selectedData.length > 0) {
+                  showNotification(
+                    "success",
+                    `Đã xác nhận ${selectedData.length} mẫu.`
+                  );
+                } else {
+                  showNotification("info", "Vui lòng chọn ít nhất một mẫu.");
+                }
+              },
+              className:
+                "bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-full shadow-md",
+            },
+            {
+              label: "Tạo báo cáo",
+              onClick: (selectedData) => {
+                console.log("Tạo báo cáo cho các mẫu:", selectedData);
+                if (selectedData.length > 0) {
+                  showNotification(
+                    "success",
+                    `Đang tạo báo cáo cho ${selectedData.length} mẫu.`
+                  );
+                } else {
+                  showNotification("info", "Vui lòng chọn ít nhất một mẫu.");
+                }
+              },
+              className:
+                "bg-gray-700 hover:bg-gray-800 text-white font-semibold py-2 px-4 rounded-full shadow-md",
+            },
+            {
+              label: "Xuất Excel",
+              onClick: () => {
+                const table = document.querySelector(
+                  `#tableContainer-lab-tests table`
+                );
+                if (
+                  table &&
+                  table.getElementsByTagName("tbody")[0].rows.length > 0
+                ) {
+                  const mainTitle = "BÁO CÁO KẾT QUẢ XÉT NGHIỆM";
+                  const stylesConfig = {
+                    header: {
+                      font: { bold: true, color: { rgb: "FFFFFF" } },
+                      fill: { fgColor: { rgb: "14B8A6" } }, // Màu teal
+                      alignment: { horizontal: "center" },
+                    },
+                    // Cấu hình style cho dữ liệu.
+                    // data có thể là một đối tượng cố định, hoặc một hàm để áp dụng style linh hoạt.
+                    data: (cellValue, rowIndex, colIndex) => {
+                      const fill = {
+                        fgColor: {
+                          rgb: rowIndex % 2 === 0 ? "F0F0F0" : "FFFFFF",
+                        }, // Màu xám nhạt xen kẽ trắng
+                      };
+                      const font = {
+                        color: {
+                          rgb: rowIndex % 2 === 0 ? "333333" : "000000",
+                        }, // Màu chữ
+                      };
+                      return {
+                        font,
+                        fill,
+                        alignment: { horizontal: "center" },
+                      };
+                    },
+                  };
+                  exportTableToXLSX(
+                    table,
+                    "danh-sach-xet-nghiem",
+                    ["", "Hành động"],
+                    mainTitle,
+                    stylesConfig
+                  );
+                  showNotification("success", "Đã xuất file Excel thành công!");
+                } else {
+                  showNotification("info", "Không có dữ liệu để xuất.");
+                }
+              },
+              className:
+                "bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-4 rounded-full shadow-md",
+            },
+          ],
+        },
+        {
+          id: "product-management",
+          title: "Quản Lý Sản Phẩm",
+          apiEndpoint: "products",
+          keyColumn: "id",
+          formParams: {
+            product_name: { value: "", type: "text" },
+            category: {
+              value: "all",
+              type: "select",
+              options: [
+                { label: "Tất cả", value: "all" },
+                { label: "Điện tử", value: "electronics" },
+                { label: "Phụ kiện", value: "accessories" },
+              ],
+            },
+            in_stock: { value: false, type: "checkbox" },
+          },
+          formLabels: {
+            product_name: "Tên Sản Phẩm",
+            category: "Danh Mục",
+            in_stock: "Còn Hàng",
+          },
+          tableColumns: {
+            name: "Tên Sản Phẩm",
+            category: "Danh Mục",
+            price: "Giá",
+            in_stock: "Tồn Kho",
+          },
+          actionButtons: [
+            {
+              label: "Sửa",
+              onClick: (data) => console.log("Sửa sản phẩm:", data),
+              className:
+                "bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-3 rounded-full text-xs shadow-sm transition-all duration-200",
+              mode: "edit",
+              confirmMessage:
+                "Bạn có chắc chắn muốn lưu các thay đổi cho sản phẩm này không?",
+              reloadOnSuccess: true,
+            },
+            {
+              label: "Xóa",
+              onClick: (data) => console.log("Xóa sản phẩm:", data),
+              className:
+                "bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-3 rounded-full text-xs shadow-sm transition-all duration-200",
+              confirmMessage: "Bạn có chắc chắn muốn xóa sản phẩm này không?",
+              reloadOnSuccess: true,
+            },
+          ],
+          externalActionButtons: [
+            {
+              label: "Xóa hàng loạt",
+              onClick: (selectedData) => {
+                console.log("Đang xóa các sản phẩm sau:", selectedData);
+                if (selectedData.length > 0) {
+                  showNotification(
+                    "error",
+                    `Đã xóa ${selectedData.length} sản phẩm.`
+                  );
+                } else {
+                  showNotification(
+                    "info",
+                    "Vui lòng chọn ít nhất một sản phẩm để xóa."
+                  );
+                }
+              },
+              className:
+                "bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-full shadow-md",
+              confirmMessage:
+                "Bạn có chắc chắn muốn xóa các sản phẩm đã chọn không? Hành động này không thể hoàn tác.",
+            },
+            {
+              label: "Xuất báo cáo",
+              onClick: (selectedData) => {
+                console.log(
+                  "Đang xuất báo cáo cho các sản phẩm:",
+                  selectedData
+                );
+                if (selectedData.length > 0) {
+                  showNotification(
+                    "success",
+                    `Đã xuất báo cáo thành công cho ${selectedData.length} sản phẩm.`
+                  );
+                } else {
+                  showNotification(
+                    "info",
+                    "Vui lòng chọn ít nhất một sản phẩm."
+                  );
+                }
+              },
+              className:
+                "bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-full shadow-md",
+            },
+          ],
+        },
+        {
+          id: "user-management",
+          title: "Quản Lý Người Dùng",
+          apiEndpoint: "users",
+          keyColumn: "id",
+          formParams: {
+            name: { value: "", type: "text" },
+            email: { value: "", type: "text" },
+            limit: { value: "50", type: "number" },
+          },
+          formLabels: {
+            name: "Tên",
+            email: "Email",
+            limit: "Giới Hạn",
+          },
+          tableColumns: {
+            id: "ID",
+            first_name: "Họ Tên",
+            email: "Email",
+            role: "Vai Trò",
+          },
+          actionButtons: [
+            {
+              label: "Chỉnh sửa",
+              onClick: (data) => console.log("Chỉnh sửa người dùng:", data),
+              className:
+                "bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-3 rounded-full text-xs shadow-sm transition-all duration-200",
+              mode: "edit",
+              confirmMessage:
+                "Bạn có chắc chắn muốn lưu các thay đổi cho người dùng này không?",
+              reloadOnSuccess: true,
+            },
+            {
+              label: "Xóa",
+              onClick: (data) => console.log("Xóa người dùng:", data),
+              className:
+                "bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-3 rounded-full text-xs shadow-sm transition-all duration-200",
+              confirmMessage: "Bạn có chắc chắn muốn xóa người dùng này không?",
+              reloadOnSuccess: true,
+            },
+          ],
+          externalActionButtons: [
+            {
+              label: "Phân quyền hàng loạt",
+              onClick: (selectedData) => {
+                console.log("Đang phân quyền cho người dùng:", selectedData);
+                if (selectedData.length > 0) {
+                  showNotification(
+                    "success",
+                    `Đã phân quyền cho ${selectedData.length} người dùng.`
+                  );
+                } else {
+                  showNotification(
+                    "info",
+                    "Vui lòng chọn ít nhất một người dùng."
+                  );
+                }
+              },
+              className:
+                "bg-purple-500 hover:bg-purple-600 text-white font-semibold py-2 px-4 rounded-full shadow-md",
+            },
+          ],
+        },
+      ];
+
+      // --- Biến lưu trạng thái sắp xếp hiện tại cho mỗi bảng ---
+      let currentSortState = {};
+
+      // --- Các hàm tiện ích chung ---
+
+      /**
+       * Hiển thị thông báo ở góc trên bên phải.
+       * @param {string} type - 'success', 'error', or 'info'.
+       * @param {string} message - The message to display.
+       */
+      function showNotification(type, message) {
+        const container = document.getElementById("notify-container");
+        const notification = document.createElement("div");
+        let bgColor = "";
+        let icon = "";
+        if (type === "success") {
+          bgColor = "bg-green-500";
+          icon = "fas fa-check-circle";
+        } else if (type === "error") {
+          bgColor = "bg-red-500";
+          icon = "fas fa-exclamation-circle";
+        } else if (type === "info") {
+          bgColor = "bg-blue-500";
+          icon = "fas fa-info-circle";
+        }
+        notification.className = `notification p-4 rounded-md shadow-md text-white flex items-center ${bgColor}`;
+        notification.innerHTML = `<i class="${icon} mr-3"></i><span>${message}</span>`;
+        container.appendChild(notification);
+        setTimeout(() => {
+          notification.remove();
+        }, 5000);
+      }
+
+      /**
+       * Hiển thị modal xác nhận.
+       * @param {string} title - Tiêu đề của modal.
+       * @param {string} message - Nội dung tin nhắn.
+       * @param {Function} onConfirmCallback - Hàm callback để thực thi khi xác nhận.
+       */
+      function showConfirmationPopup(title, message, onConfirmCallback) {
+        const modal = document.getElementById("confirmation-modal");
+        const modalTitle = document.getElementById("modal-title");
+        const modalMessage = document.getElementById("modal-message");
+        const confirmBtn = document.getElementById("modal-confirm");
+        const cancelBtn = document.getElementById("modal-cancel");
+
+        modalTitle.textContent = title;
+        modalMessage.textContent = message;
+        modal.classList.remove("hidden");
+
+        // Reset listeners
+        const newConfirmBtn = confirmBtn.cloneNode(true);
+        confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+
+        const newCancelBtn = cancelBtn.cloneNode(true);
+        cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+
+        newConfirmBtn.addEventListener("click", () => {
+          onConfirmCallback();
+          modal.classList.add("hidden");
+        });
+
+        newCancelBtn.addEventListener("click", () => {
+          modal.classList.add("hidden");
+        });
+      }
+
+      /**
+       * Lấy dữ liệu từ các input form của một section cụ thể.
+       * @param {string} sectionId - ID của section.
+       * @returns {Object} Một đối tượng chứa các tham số truy vấn.
+       */
+      function getFormParams(sectionId) {
+        const params = {};
+        const formContainer = document.getElementById(
+          `paramsForm-${sectionId}`
+        );
+        if (formContainer) {
+          Array.from(formContainer.querySelectorAll("input, select")).forEach(
+            (input) => {
+              if (input.type === "checkbox") {
+                params[input.id] = input.checked;
+              } else {
+                params[input.id] = input.value;
+              }
+            }
+          );
+        }
+        return params;
+      }
+
+      /**
+       * Tự động tạo các input form dựa trên cấu hình.
+       * @param {Object} params - Các tham số mặc định.
+       * @param {Object} labels - Các nhãn tương ứng.
+       * @param {string} sectionId - ID của section.
+       */
+      function createFormInputs(params, labels, sectionId) {
+        const formContainer = document.getElementById(
+          `paramsForm-${sectionId}`
+        );
+        formContainer.innerHTML = "";
+
+        for (const key in params) {
+          if (params.hasOwnProperty(key)) {
+            const paramConfig = params[key];
+            const labelText = labels[key] || key;
+
+            const div = document.createElement("div");
+
+            const label = document.createElement("label");
+            label.htmlFor = key;
+            label.className = "block text-sm font-medium text-gray-700";
+            label.textContent = labelText;
+
+            let inputElement;
+
+            if (paramConfig.type === "select") {
+              const select = document.createElement("select");
+              select.id = key;
+              select.className =
+                "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2";
+
+              paramConfig.options.forEach((option) => {
+                const optionElement = document.createElement("option");
+                optionElement.value = option.value;
+                optionElement.textContent = option.label;
+                if (paramConfig.value === option.value) {
+                  optionElement.selected = true;
+                }
+                select.appendChild(optionElement);
+              });
+              inputElement = select;
+
+              div.appendChild(label);
+              div.appendChild(inputElement);
+            } else if (paramConfig.type === "checkbox") {
+              div.className = "flex items-center";
+              const input = document.createElement("input");
+              input.id = key;
+              input.type = "checkbox";
+              input.checked = paramConfig.value;
+              input.className =
+                "h-4 w-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500";
+
+              label.className = "ml-2 block text-sm text-gray-900";
+              label.textContent = labelText;
+
+              div.appendChild(input);
+              div.appendChild(label);
+              inputElement = input;
+            } else {
+              const input = document.createElement("input");
+              input.id = key;
+              input.type = paramConfig.type;
+              input.value = paramConfig.value;
+              input.className =
+                "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2";
+              inputElement = input;
+
+              div.appendChild(label);
+              div.appendChild(inputElement);
+            }
+
+            // Add keydown listener to trigger fetch on Enter key
+            if (inputElement) {
+              inputElement.addEventListener("keydown", (e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  const fetchDataBtn = document.getElementById(
+                    `fetchDataBtn-${sectionId}`
+                  );
+                  if (fetchDataBtn) {
+                    fetchDataBtn.click();
+                  }
+                }
+              });
+            }
+
+            formContainer.appendChild(div);
+          }
+        }
+      }
+
+      /**
+       * Tự động tạo bảng dữ liệu dựa trên cấu hình.
+       * @param {HTMLElement} container - Container để render bảng.
+       * @param {Array<Object>} data - Dữ liệu.
+       * @param {Object} columns - Cấu hình cột.
+       * @param {Array<Object>} actionButtons - Cấu hình nút hành động trên mỗi dòng.
+       * @param {string} keyColumn - Tên cột ID duy nhất của dòng.
+       * @param {string} sectionId - ID của section.
+       * @param {function} reloadCallback - Hàm callback để tải lại bảng.
+       */
+      function createDataTableComponent(
+        container,
+        data,
+        columns,
+        actionButtons,
+        keyColumn,
+        sectionId,
+        reloadCallback
+      ) {
+        const tableBody = container.querySelector("tbody");
+        const tableHeader = container.querySelector("thead tr");
+        const headerCheckboxId = `header-checkbox-${container.id}`;
+
+        tableHeader.innerHTML = `
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          <input type="checkbox" id="${headerCheckboxId}" class="rounded text-indigo-600 focus:ring-indigo-500">
+        </th>
+      `;
+        tableBody.innerHTML = "";
+
+        const columnKeys = Object.keys(columns);
+
+        columnKeys.forEach((key) => {
+          const th = document.createElement("th");
+          th.scope = "col";
+          th.className =
+            "px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable-header";
+          th.textContent = columns[key];
+          th.setAttribute("data-column", key);
+          th.innerHTML += ' <i class="fas fa-sort text-gray-400 ml-1"></i>';
+
+          // Gán sự kiện click để sắp xếp
+          th.addEventListener("click", () => {
+            const currentSort = currentSortState[sectionId] || {};
+            let newDirection = "asc";
+            if (currentSort.column === key && currentSort.direction === "asc") {
+              newDirection = "desc";
+            }
+            currentSortState[sectionId] = {
+              column: key,
+              direction: newDirection,
+            };
+            // Sắp xếp lại dữ liệu và render lại bảng
+            const sortedData = sortData(data, key, newDirection);
+            createDataTableComponent(
+              container,
+              sortedData,
+              columns,
+              actionButtons,
+              keyColumn,
+              sectionId,
+              reloadCallback
+            );
+          });
+
+          tableHeader.appendChild(th);
+        });
+
+        // Thêm cột hành động
+        if (actionButtons && actionButtons.length > 0) {
+          const actionTh = document.createElement("th");
+          actionTh.scope = "col";
+          actionTh.className =
+            "px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider";
+          actionTh.textContent = "Hành Động";
+          tableHeader.appendChild(actionTh);
+        }
+
+        // Cập nhật biểu tượng sắp xếp
+        const currentSort = currentSortState[sectionId] || {};
+        if (currentSort.column) {
+          const sortedHeader = container.querySelector(
+            `[data-column="${currentSort.column}"] i`
+          );
+          if (sortedHeader) {
+            sortedHeader.classList.remove("fa-sort", "text-gray-400");
+            sortedHeader.classList.add(
+              currentSort.direction === "asc" ? "fa-sort-up" : "fa-sort-down",
+              "text-indigo-600"
+            );
+          }
+        }
+
+        if (data && data.length > 0) {
+          data.forEach((item) => {
+            const row = document.createElement("tr");
+            row.className =
+              "bg-white hover:bg-gray-50 transition-colors duration-200 table-row-clickable";
+            row.setAttribute("data-id", item[keyColumn]); // Thêm data-id để dễ dàng tìm kiếm hàng
+
+            const checkboxCell = document.createElement("td");
+            checkboxCell.className =
+              "px-6 py-4 whitespace-nowrap text-sm font-medium";
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.className =
+              "rounded text-indigo-600 focus:ring-indigo-500 row-checkbox";
+            checkbox.setAttribute("data-id", item[keyColumn]); // Lưu ID vào data-attribute
+            checkboxCell.appendChild(checkbox);
+            row.appendChild(checkboxCell);
+
+            // Tạo các ô dữ liệu
+            columnKeys.forEach((key) => {
+              const cell = document.createElement("td");
+              cell.className =
+                "px-6 py-4 whitespace-nowrap text-sm text-gray-900";
+              let cellContent = item[key] || "";
+              cell.textContent = cellContent;
+              cell.setAttribute("data-column", key);
+              row.appendChild(cell);
+            });
+
+            // Thêm các nút hành động
+            if (actionButtons && actionButtons.length > 0) {
+              const actionCell = document.createElement("td");
+              actionCell.className =
+                "px-6 py-4 whitespace-nowrap text-sm text-gray-900";
+              const buttonContainer = document.createElement("div");
+              buttonContainer.className = "flex space-x-2";
+
+              actionButtons.forEach((btn) => {
+                const button = document.createElement("button");
+                button.textContent = btn.label;
+                button.className = btn.className;
+                button.setAttribute("data-action", btn.label);
+
+                button.onclick = (e) => {
+                  e.stopPropagation();
+
+                  // Logic cho nút Sửa / Lưu
+                  if (btn.mode === "edit") {
+                    // Store original data before editing
+                    row.setAttribute("data-original", JSON.stringify(item));
+                    // Xóa các nút hiện tại và tạo lại các nút "Lưu" và "Hủy"
+                    renderRowInEditMode(
+                      row,
+                      item,
+                      columnKeys,
+                      sectionId,
+                      reloadCallback
+                    );
+                  } else {
+                    // Logic cho các nút khác
+                    if (btn.confirmMessage) {
+                      showConfirmationPopup(
+                        "Xác nhận hành động",
+                        btn.confirmMessage,
+                        async () => {
+                          await btn.onClick(item);
+                          await new Promise((resolve) =>
+                            setTimeout(resolve, 500)
+                          );
+                          showNotification(
+                            "success",
+                            `Hành động "${btn.label}" đã hoàn tất.`
+                          );
+                          // Conditional reload
+                          if (btn.reloadOnSuccess) {
+                            reloadCallback(
+                              pageConfig.find((cfg) => cfg.id === sectionId)
+                            );
+                          }
+                        }
+                      );
+                    } else {
+                      (async () => {
+                        await btn.onClick(item);
+                        await new Promise((resolve) =>
+                          setTimeout(resolve, 500)
+                        );
+                        showNotification(
+                          "success",
+                          `Hành động "${btn.label}" đã hoàn tất.`
+                        );
+                        // Conditional reload
+                        if (btn.reloadOnSuccess) {
+                          reloadCallback(
+                            pageConfig.find((cfg) => cfg.id === sectionId)
+                          );
+                        }
+                      })();
+                    }
+                  }
+                };
+                buttonContainer.appendChild(button);
+              });
+              actionCell.appendChild(buttonContainer);
+              row.appendChild(actionCell);
+            }
+
+            tableBody.appendChild(row);
+
+            // Cải thiện logic để ngăn chặn sự kiện nhấp chuột trên hàng khi nhấp vào input hoặc button
+            row.addEventListener("click", (event) => {
+              if (
+                event.target.tagName.toLowerCase() !== "button" &&
+                event.target.tagName.toLowerCase() !== "input"
+              ) {
+                checkbox.checked = !checkbox.checked;
+              }
+              // Cập nhật trạng thái của checkbox tiêu đề
+              updateHeaderCheckboxState(container.id);
+            });
+          });
+        } else {
+          const noDataRow = document.createElement("tr");
+          const noDataCell = document.createElement("td");
+          noDataCell.colSpan = Object.keys(columns).length + 2;
+          noDataCell.className = "text-center py-8 text-gray-500";
+          noDataCell.textContent = "Không tìm thấy dữ liệu.";
+          noDataRow.appendChild(noDataCell);
+          tableBody.appendChild(noDataRow);
+        }
+
+        // Hàm tiện ích để cập nhật trạng thái của checkbox tiêu đề
+        function updateHeaderCheckboxState(containerId) {
+          const headerCheckbox = document.getElementById(
+            `header-checkbox-${containerId}`
+          );
+          const rowCheckboxes = document.querySelectorAll(
+            `#tableBody-${containerId} .row-checkbox`
+          );
+          if (headerCheckbox && rowCheckboxes.length > 0) {
+            const allChecked = Array.from(rowCheckboxes).every(
+              (cb) => cb.checked
+            );
+            headerCheckbox.checked = allChecked;
+          }
+        }
+
+        // Add event listeners for the "select all" functionality
+        const headerCheckbox = document.getElementById(headerCheckboxId);
+        const rowCheckboxes = container.querySelectorAll(".row-checkbox");
+
+        if (headerCheckbox) {
+          headerCheckbox.addEventListener("change", () => {
+            rowCheckboxes.forEach((checkbox) => {
+              checkbox.checked = headerCheckbox.checked;
+            });
+          });
+        }
+
+        if (rowCheckboxes.length > 0) {
+          rowCheckboxes.forEach((checkbox) => {
+            checkbox.addEventListener("change", () => {
+              updateHeaderCheckboxState(container.id);
+            });
+          });
+        }
+      }
+
+      /**
+       * Chuyển một hàng sang chế độ chỉnh sửa.
+       * @param {HTMLElement} row - Hàng cần chỉnh sửa.
+       * @param {Object} item - Dữ liệu gốc của hàng.
+       * @param {Array<string>} columnKeys - Mảng các khóa cột.
+       * @param {string} sectionId - ID của section.
+       * @param {function} reloadCallback - Hàm callback để tải lại bảng.
+       */
+      function renderRowInEditMode(
+        row,
+        item,
+        columnKeys,
+        sectionId,
+        reloadCallback
+      ) {
+        const actionButtonsConfig = pageConfig.find(
+          (cfg) => cfg.id === sectionId
+        ).actionButtons;
+        const saveButtonConfig = actionButtonsConfig.find(
+          (btn) => btn.label === "Sửa"
+        );
+
+        // Biến các ô thành input
+        columnKeys.forEach((key) => {
+          const cell = row.querySelector(`[data-column="${key}"]`);
+          const originalValue = item[key];
+          cell.innerHTML = `<input type="text" value="${originalValue}" class="w-full border rounded px-2 py-1 text-sm">`;
+        });
+
+        // Thay thế các nút hành động
+        const actionCell = row.querySelector("td:last-child");
+        const buttonContainer = document.createElement("div");
+        buttonContainer.className = "flex space-x-2";
+        actionCell.innerHTML = ""; // Xóa các nút cũ
+
+        const saveBtn = document.createElement("button");
+        saveBtn.textContent = "Lưu";
+        saveBtn.className =
+          "bg-green-500 hover:bg-green-600 text-white font-bold py-1 px-3 rounded-full text-xs shadow-sm transition-all duration-200";
+        saveBtn.onclick = (event) => {
+          event.stopPropagation();
+          const editedData = getEditedRowData(row, columnKeys);
+
+          if (saveButtonConfig.confirmMessage) {
+            showConfirmationPopup(
+              "Xác nhận hành động",
+              saveButtonConfig.confirmMessage,
+              async () => {
+                console.log("Đang lưu dữ liệu đã chỉnh sửa:", editedData);
+                await new Promise((resolve) => setTimeout(resolve, 500));
+                showNotification("success", `Đã lưu thành công.`);
+                // Conditional reload
+                if (saveButtonConfig.reloadOnSuccess) {
+                  reloadCallback(
+                    pageConfig.find((cfg) => cfg.id === sectionId)
+                  );
+                } else {
+                  // Restore buttons and exit edit mode without reloading
+                  restoreRowToViewMode(
+                    row,
+                    editedData,
+                    columnKeys,
+                    sectionId,
+                    reloadCallback
+                  );
+                }
+              }
+            );
+          } else {
+            (async () => {
+              console.log("Đang lưu dữ liệu đã chỉnh sửa:", editedData);
+              await new Promise((resolve) => setTimeout(resolve, 500));
+              showNotification("success", `Đã lưu thành công.`);
+              // Conditional reload
+              if (saveButtonConfig.reloadOnSuccess) {
+                reloadCallback(pageConfig.find((cfg) => cfg.id === sectionId));
+              } else {
+                // Restore buttons and exit edit mode without reloading
+                restoreRowToViewMode(
+                  row,
+                  editedData,
+                  columnKeys,
+                  sectionId,
+                  reloadCallback
+                );
+              }
+            })();
+          }
+        };
+
+        const cancelBtn = document.createElement("button");
+        cancelBtn.textContent = "Hủy";
+        cancelBtn.className =
+          "bg-gray-400 hover:bg-gray-500 text-white font-bold py-1 px-3 rounded-full text-xs shadow-sm transition-all duration-200";
+        cancelBtn.onclick = () => {
+          // Restore original data from the stored attribute
+          const originalData = JSON.parse(row.getAttribute("data-original"));
+          restoreRowToViewMode(
+            row,
+            originalData,
+            columnKeys,
+            sectionId,
+            reloadCallback
+          );
+        };
+
+        buttonContainer.appendChild(saveBtn);
+        buttonContainer.appendChild(cancelBtn);
+        actionCell.appendChild(buttonContainer);
+      }
+
+      /**
+       * Khôi phục một hàng về chế độ xem ban đầu.
+       * @param {HTMLElement} row - Hàng cần khôi phục.
+       * @param {Object} dataToRestore - Dữ liệu để khôi phục (gốc hoặc đã lưu).
+       * @param {Array<string>} columnKeys - Mảng các khóa cột.
+       * @param {string} sectionId - ID của section.
+       * @param {function} reloadCallback - Hàm callback để tải lại bảng.
+       */
+      function restoreRowToViewMode(
+        row,
+        dataToRestore,
+        columnKeys,
+        sectionId,
+        reloadCallback
+      ) {
+        // Khôi phục các ô về dạng text
+        columnKeys.forEach((key) => {
+          const cell = row.querySelector(`[data-column="${key}"]`);
+          // Kiểm tra và xử lý các giá trị boolean
+          let displayValue = dataToRestore[key];
+          if (typeof displayValue === "boolean") {
+            displayValue = displayValue ? "Có" : "Không";
+          }
+          cell.textContent = displayValue;
+        });
+
+        // Khôi phục các nút hành động ban đầu
+        const actionCell = row.querySelector("td:last-child");
+        const buttonContainer = document.createElement("div");
+        buttonContainer.className = "flex space-x-2";
+        actionCell.innerHTML = ""; // Xóa các nút cũ
+
+        const actionButtonsConfig = pageConfig.find(
+          (cfg) => cfg.id === sectionId
+        ).actionButtons;
+        actionButtonsConfig.forEach((btn) => {
+          const button = document.createElement("button");
+          button.textContent = btn.label;
+          button.className = btn.className;
+          button.setAttribute("data-action", btn.label);
+          button.onclick = (e) => {
+            e.stopPropagation();
+            if (btn.mode === "edit") {
+              row.setAttribute("data-original", JSON.stringify(dataToRestore));
+              renderRowInEditMode(
+                row,
+                dataToRestore,
+                columnKeys,
+                sectionId,
+                reloadCallback
+              );
+            } else {
+              if (btn.confirmMessage) {
+                showConfirmationPopup(
+                  "Xác nhận hành động",
+                  btn.confirmMessage,
+                  async () => {
+                    await btn.onClick(dataToRestore);
+                    await new Promise((resolve) => setTimeout(resolve, 500));
+                    showNotification(
+                      "success",
+                      `Hành động "${btn.label}" đã hoàn tất.`
+                    );
+                    if (btn.reloadOnSuccess) {
+                      reloadCallback(
+                        pageConfig.find((cfg) => cfg.id === sectionId)
+                      );
+                    }
+                  }
+                );
+              } else {
+                (async () => {
+                  await btn.onClick(dataToRestore);
+                  await new Promise((resolve) => setTimeout(resolve, 500));
+                  showNotification(
+                    "success",
+                    `Hành động "${btn.label}" đã hoàn tất.`
+                  );
+                  if (btn.reloadOnSuccess) {
+                    reloadCallback(
+                      pageConfig.find((cfg) => cfg.id === sectionId)
+                    );
+                  }
+                })();
+              }
+            }
+          };
+          buttonContainer.appendChild(button);
+        });
+        actionCell.appendChild(buttonContainer);
+      }
+
+      /**
+       * Lấy dữ liệu đã chỉnh sửa từ các input của một hàng.
+       * @param {HTMLElement} row - Hàng có các input.
+       * @param {Array<string>} columnKeys - Mảng các khóa cột.
+       * @returns {Object} Dữ liệu đã chỉnh sửa.
+       */
+      function getEditedRowData(row, columnKeys) {
+        const data = {};
+        const originalData = JSON.parse(row.getAttribute("data-original"));
+        // Sao chép tất cả các thuộc tính của dữ liệu gốc, bao gồm cả cột keyColumn
+        Object.assign(data, originalData);
+
+        columnKeys.forEach((key) => {
+          const input = row.querySelector(`[data-column="${key}"] input`);
+          if (input) {
+            data[key] = input.value;
+          }
+        });
+        return data;
+      }
+
+      /**
+       * Sắp xếp dữ liệu theo một cột và hướng cụ thể.
+       * @param {Array<Object>} data - Dữ liệu thô.
+       * @param {string} column - Tên cột để sắp xếp.
+       * @param {string} direction - 'asc' hoặc 'desc'.
+       * @returns {Array<Object>} Dữ liệu đã sắp xếp.
+       */
+      function sortData(data, column, direction) {
+        const sorted = [...data].sort((a, b) => {
+          const aValue = a[column];
+          const bValue = b[column];
+
+          if (typeof aValue === "string" && typeof bValue === "string") {
+            return aValue.localeCompare(bValue);
+          }
+          return aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
+        });
+
+        if (direction === "desc") {
+          return sorted.reverse();
+        }
+        return sorted;
+      }
+
+      /**
+       * Tạo các nút hành động bên ngoài bảng.
+       * @param {HTMLElement} container - Container để render các nút.
+       * @param {Array<Object>} buttonsConfig - Cấu hình các nút.
+       * @param {string} sectionId - ID của section.
+       */
+      function createExternalButtons(container, buttonsConfig, sectionId) {
+        container.innerHTML = "";
+        if (!buttonsConfig || buttonsConfig.length === 0) {
+          container.classList.add("hidden");
+          return;
+        }
+        container.classList.remove("hidden");
+
+        buttonsConfig.forEach((btn) => {
+          const button = document.createElement("button");
+          button.textContent = btn.label;
+          button.className = btn.className;
+
+          button.onclick = () => {
+            const selectedCheckboxes = document.querySelectorAll(
+              `#tableBody-${sectionId} .row-checkbox:checked`
+            );
+            const selectedDataIds = Array.from(selectedCheckboxes).map((cb) =>
+              cb.getAttribute("data-id")
+            );
+
+            const sectionConfig = pageConfig.find(
+              (cfg) => cfg.id === sectionId
+            );
+            const allData = Array.from(sectionConfig.tableData || []);
+            const selectedData = allData.filter((item) =>
+              selectedDataIds.includes(String(item[sectionConfig.keyColumn]))
+            );
+
+            if (btn.confirmMessage) {
+              showConfirmationPopup(
+                "Xác nhận hành động",
+                btn.confirmMessage,
+                async () => {
+                  await btn.onClick(selectedData);
+                  await new Promise((resolve) => setTimeout(resolve, 500));
+                  showNotification(
+                    "success",
+                    `Đã hoàn tất hành động "${btn.label}".`
+                  );
+                  // Reload the table after the action
+                  fetchAndRenderSectionData(sectionConfig);
+                }
+              );
+            } else {
+              btn.onClick(selectedData);
+            }
+          };
+          container.appendChild(button);
+        });
+      }
+
+      /**
+       * Lấy và hiển thị dữ liệu cho một section cụ thể.
+       * @param {Object} sectionConfig - Cấu hình của section.
+       */
+      async function fetchAndRenderSectionData(sectionConfig) {
+        showLoadingPopup()
+        const loadingSpinner = document.getElementById(
+          `loading-${sectionConfig.id}`
+        );
+        const tableContainer = document.getElementById(
+          `tableContainer-${sectionConfig.id}`
+        );
+        const tableBody = document.getElementById(
+          `tableBody-${sectionConfig.id}`
+        );
+
+        loadingSpinner.classList.remove("hidden");
+        tableContainer.classList.add("hidden");
+        tableBody.innerHTML = ""; // Clear table body
+
+        const params = getFormParams(sectionConfig.id);
+
+        try {
+          const response = await mockApi[sectionConfig.apiEndpoint](params);
+          const data = response.data.data;
+
+          sectionConfig.tableData = data; // Cache the data
+
+          // Render the table with the fetched data
+          createDataTableComponent(
+            tableContainer,
+            data,
+            sectionConfig.tableColumns,
+            sectionConfig.actionButtons,
+            sectionConfig.keyColumn,
+            sectionConfig.id,
+            fetchAndRenderSectionData
+          );
+
+          // Create external buttons based on the config
+          const externalButtonsContainer = document.getElementById(
+            `externalButtons-${sectionConfig.id}`
+          );
+          createExternalButtons(
+            externalButtonsContainer,
+            sectionConfig.externalActionButtons,
+            sectionConfig.id
+          );
+        } catch (error) {
+          console.error("Error fetching data:", error);
+          showNotification(
+            "error",
+            `Lỗi khi tải dữ liệu cho "${sectionConfig.title}".`
+          );
+          // Display an error message in the table
+          const noDataRow = document.createElement("tr");
+          const noDataCell = document.createElement("td");
+          noDataCell.colSpan =
+            Object.keys(sectionConfig.tableColumns).length + 2;
+          noDataCell.className = "text-center py-8 text-red-500";
+          noDataCell.textContent = "Lỗi: Không thể tải dữ liệu.";
+          noDataRow.appendChild(noDataCell);
+          tableBody.appendChild(noDataRow);
+        } finally {
+          loadingSpinner.classList.add("hidden");
+          tableContainer.classList.remove("hidden");
+          hideLoadingPopup()
+        }
+      }
+      /**
+       * Hàm xuất dữ liệu bảng ra file Excel (.xlsx) với viền kẻ và tùy chỉnh style.
+       * @param {HTMLElement} table - Phần tử bảng HTML.
+       * @param {string} filename - Tên file Excel.
+       * @param {string[]} excludeColumns - Mảng chứa tên các cột (tiêu đề) cần loại bỏ.
+       * @param {string} mainTitle - Tiêu đề chính của báo cáo.
+       * @param {object} stylesConfig - Cấu hình style cho header và data.
+       */
+      function exportTableToXLSX(
+        table,
+        filename,
+        excludeColumns = [],
+        mainTitle = "",
+        stylesConfig = {}
+      ) {
+        const allHeaders = Array.from(table.tHead.querySelectorAll("th")).map(
+          (th) => th.textContent.trim()
+        );
+
+        const excludedIndices = allHeaders
+          .map((header, index) =>
+            excludeColumns.includes(header) ? index : -1
+          )
+          .filter((index) => index !== -1);
+
+        const finalHeaders = allHeaders.filter(
+          (header) => !excludeColumns.includes(header)
+        );
+
+        const data = Array.from(table.tBodies[0].rows).map((row) => {
+          const rowData = {};
+          Array.from(row.cells).forEach((cell, index) => {
+            if (!excludedIndices.includes(index)) {
+              const headerIndex = allHeaders.findIndex((h, i) => i === index);
+              if (headerIndex !== -1) {
+                rowData[allHeaders[headerIndex]] = cell.textContent.trim();
+              }
+            }
+          });
+          return rowData;
+        });
+
+        const workbook = XLSX.utils.book_new();
+        const worksheet = XLSX.utils.json_to_sheet(data);
+
+        // Auto-size columns
+        const colWidths = finalHeaders.map((header) => ({
+          wch: header.length + 2,
+        }));
+        const cellData = data.map((row) => Object.values(row));
+        cellData.forEach((row) => {
+          row.forEach((cell, i) => {
+            const valueLength = cell.toString().length;
+            if (valueLength > colWidths[i].wch) {
+              colWidths[i].wch = valueLength + 2;
+            }
+          });
+        });
+        worksheet["!cols"] = colWidths;
+
+        // Chèn tiêu đề chính và dữ liệu
+        if (mainTitle) {
+          XLSX.utils.sheet_add_aoa(worksheet, [[mainTitle]], { origin: "A1" });
+          XLSX.utils.sheet_add_aoa(worksheet, [finalHeaders], { origin: "A2" });
+          XLSX.utils.sheet_add_json(worksheet, data, {
+            origin: "A3",
+            skipHeader: true,
+          });
+        } else {
+          XLSX.utils.sheet_add_aoa(worksheet, [finalHeaders], { origin: "A1" });
+          XLSX.utils.sheet_add_json(worksheet, data, {
+            origin: "A2",
+            skipHeader: true,
+          });
+        }
+
+        const borderStyle = {
+          top: { style: "thin" },
+          bottom: { style: "thin" },
+          left: { style: "thin" },
+          right: { style: "thin" },
+        };
+
+        // Áp dụng style cho tiêu đề cột
+        const headerRowIndex = mainTitle ? 1 : 0;
+        for (let C = 0; C < finalHeaders.length; ++C) {
+          const cellRef = XLSX.utils.encode_cell({ r: headerRowIndex, c: C });
+          if (worksheet[cellRef]) {
+            if (!worksheet[cellRef].s) worksheet[cellRef].s = {};
+            worksheet[cellRef].s.border = borderStyle;
+            if (stylesConfig.header) {
+              worksheet[cellRef].s = {
+                ...worksheet[cellRef].s,
+                ...stylesConfig.header,
+              };
+            }
+          }
+        }
+
+        // Áp dụng style cho dữ liệu
+        const dataStartRowIndex = mainTitle ? 2 : 1;
+        for (let R = 0; R < data.length; ++R) {
+          for (let C = 0; C < finalHeaders.length; ++C) {
+            const cellRef = XLSX.utils.encode_cell({
+              r: R + dataStartRowIndex,
+              c: C,
+            });
+            if (worksheet[cellRef]) {
+              if (!worksheet[cellRef].s) worksheet[cellRef].s = {};
+              worksheet[cellRef].s.border = borderStyle;
+
+              // Áp dụng style từ hàm cấu hình
+              if (typeof stylesConfig.data === "function") {
+                const cellValue = data[R][finalHeaders[C]];
+                const cellStyle = stylesConfig.data(cellValue, R, C);
+                worksheet[cellRef].s = {
+                  ...worksheet[cellRef].s,
+                  ...cellStyle,
+                };
+              } else if (stylesConfig.data) {
+                worksheet[cellRef].s = {
+                  ...worksheet[cellRef].s,
+                  ...stylesConfig.data,
+                };
+              }
+            }
+          }
+        }
+
+        // Định dạng tiêu đề chính
+        if (mainTitle) {
+          const titleCellRef = "A1";
+          if (worksheet[titleCellRef]) {
+            worksheet[titleCellRef].s = {
+              font: { bold: true, sz: 16 }, // sz: size
+              alignment: { horizontal: "center" },
+            };
+          }
+
+          // Gộp ô cho tiêu đề chính
+          if (!worksheet["!merges"]) worksheet["!merges"] = [];
+          worksheet["!merges"].push({
+            s: { r: 0, c: 0 },
+            e: { r: 0, c: finalHeaders.length - 1 },
+          });
+        }
+
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
+
+        // Xuất file .xlsx
+        XLSX.writeFile(workbook, `${filename}.xlsx`);
+      }
+
+      const loadingPopup = document.getElementById('loadingPopup');
+    /**
+     * Hiển thị popup loading.
+     */
+    function showLoadingPopup() {
+      loadingPopup.classList.remove('opacity-0', 'pointer-events-none');
+      loadingPopup.classList.add('opacity-100');
+    }
+
+    /**
+     * Ẩn popup loading.
+     */
+    function hideLoadingPopup() {
+      loadingPopup.classList.remove('opacity-100');
+      loadingPopup.classList.add('opacity-0', 'pointer-events-none');
+    }
+
+      /**
+       * Tạo cấu trúc HTML cho một section.
+       * @param {Object} sectionConfig - Cấu hình của section.
+       */
+      function createSectionHTML(sectionConfig) {
+        const mainContainer = document.getElementById("main-container");
+        const sectionDiv = document.createElement("div");
+        sectionDiv.id = `section-${sectionConfig.id}`;
+        sectionDiv.className = "bg-white p-6 rounded-lg shadow-lg";
+        sectionDiv.innerHTML = `
+        <h2 class="text-2xl font-bold mb-6 text-gray-800">${sectionConfig.title}</h2>
+        
+        <!-- Search and filter form -->
+        <div id="paramsForm-${sectionConfig.id}" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6"></div>
+        <div class="flex justify-end mb-6">
+          <button id="fetchDataBtn-${sectionConfig.id}" class="bg-indigo-600 text-white font-semibold py-2 px-6 rounded-full shadow-md hover:bg-indigo-700 transition-all duration-200">
+            Tìm kiếm
+          </button>
+        </div>
+        
+        <!-- Loading spinner -->
+        <div id="loading-${sectionConfig.id}" class="text-center text-gray-500 my-8 hidden">
+          <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-t-4 border-indigo-600 border-t-transparent"></div>
+          <p class="mt-2 text-lg">Đang tải dữ liệu...</p>
+        </div>
+
+        <!-- Table to display data -->
+        <div id="tableContainer-${sectionConfig.id}" class="table-container rounded-lg border border-gray-200 shadow-inner">
+          <table class="min-w-full bg-white divide-y divide-gray-200">
+            <thead class="bg-gray-50 sticky top-0 z-10">
+              <tr id="tableHeader-${sectionConfig.id}"></tr>
+            </thead>
+            <tbody id="tableBody-${sectionConfig.id}" class="bg-white divide-y divide-gray-200"></tbody>
+          </table>
+        </div>
+        
+        <!-- Container for external action buttons -->
+        <div id="externalButtons-${sectionConfig.id}" class="mt-4 flex justify-end space-x-2"></div>
+      `;
+        mainContainer.appendChild(sectionDiv);
+
+        createFormInputs(
+          sectionConfig.formParams,
+          sectionConfig.formLabels,
+          sectionConfig.id
+        );
+
+        const fetchDataBtn = document.getElementById(
+          `fetchDataBtn-${sectionConfig.id}`
+        );
+        fetchDataBtn.addEventListener("click", () => {
+          fetchAndRenderSectionData(sectionConfig);
+        });
+      }
+
+      /**
+       * Hàm khởi tạo chính, chạy khi trang được tải.
+       */
+      function initializePage() {
+        pageConfig.forEach((section) => {
+          createSectionHTML(section);
+          fetchAndRenderSectionData(section);
+        });
+      }
+
+      // Khởi chạy ứng dụng
+      window.onload = initializePage;
+    </script>
+  </body>
+</html>

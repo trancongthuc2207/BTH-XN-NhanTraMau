@@ -6,6 +6,7 @@ r = routers.DefaultRouter()
 
 # Template
 r.register("xn", views.TemplateViewSet)
+r.register("nb", views.NoiBoTemplateViewSet)
 
 r.register("api/default", views.DefaultViewSet)
 r.register("api/pub/xn", views.XN_DVYeuCauViewSet)

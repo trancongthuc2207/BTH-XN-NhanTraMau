@@ -1,0 +1,327 @@
+# Standard Library
+import math
+import zipfile
+from io import BytesIO
+from datetime import datetime, timedelta
+
+
+# Django Core
+from django.conf import settings
+from django.core.paginator import Paginator, EmptyPage
+from django.db.models import OuterRef, Subquery
+from django.shortcuts import render
+from django.utils.encoding import smart_str
+from django.shortcuts import get_object_or_404
+from django.http import HttpResponse
+from django.http import Http404
+from django.template.response import TemplateResponse
+from django.utils.safestring import mark_safe
+
+# Django REST Framework
+from rest_framework import generics, parsers, permissions, status, viewsets
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.exceptions import NotFound, ValidationError
+
+# Internal Apps
+# from IT_OAUTH.models import *
+from IT_FilesManager.enums.default_enum import *
+from IT_Default.models import ConfigApp as ConfigAppDefault
+from IT_OAUTH.models import ConfigApp as ConfigAppOauth
+from IT_FilesManager.paginations import Paginations
+from IT_FilesManager.perms import *
+from IT_FilesManager.queries import Queries
+from IT_FilesManager.serializers import *
+from IT_OAUTH.throttles import *
+from IT_FilesManager.utils.Utils import *
+
+# Utils
+from general_utils.Template.TemplateResponse import ResponseBase
+from general_utils.utils import *
+from general_utils.Logging.logging_tools import LogHelper
+from general_utils.GetConfig.UtilsConfigSystem import *
+
+from IT_Default.utils.sql_server.sql_utils import (
+    sql_build_advanced_filters_and_pagination,
+)
+
+# External/Internal OAuth App
+from IT_OAUTH.serializers import *
+
+# Serializers
+from IT_FilesManager.Serializers import FilesSerializers
+
+# SQL Import
+from IT_Default.queries.QueriesFPT_XN_LAYMAU_NHANMAU import *
+
+# Logger sys
+logger_info_sys = LogHelper("file_info_sys")
+logger_bug_sys = LogHelper("file_bug_sys")
+# /(?P<id>[a-zA-Z0-9]+)
+# Khoa Khám Bệnh
+
+
+class NoiBoTemplateSetBase(
+    viewsets.ViewSet,
+):
+    queryset = User.objects.using("oauth").all()
+    throttle_classes = [SuperRateThrottle]
+    # serializer_class = UserSerializer
+    parser_classes = [
+        parsers.MultiPartParser,
+    ]
+
+    def get_permissions(self):
+        if self.action in [
+            # GET
+            "get_thanhvien_upload_all",
+            # PUT
+            "put_multi_id_accept_thanhvien_hoinghi_upload",
+        ]:
+            return [RoleAppDefault()]
+
+        return [permissions.AllowAny()]
+
+    # ------------------------------------------------------------------------------ #
+    # ------------------------------------------------------------------------------ #
+    # ------------------------------------ GET ------------------------------------- #
+    # ------------------------------------------------------------------------------ #
+    # ------------------------------------------------------------------------------ #
+
+    @action(methods=["get"], detail=False, url_path="login")
+    def XN_NB_LOGIN(self, request):
+        # init
+        LIST_ROLE = []
+
+        get_config = GET_VALUE_ACTION_SYSTEM(
+            ConfigAppDefault, "LIST_ROLE_FOR_XN_NHAN_MAU", "default"
+        )
+        if get_config:
+            LIST_ROLE = json.loads(get_config)
+
+        KEY_AUTHOR = "BTHNOIBO"
+        get_config_key_author = GET_VALUE_ACTION_SYSTEM(
+            ConfigAppOauth, "KEY_AUTHORIZATION", "default"
+        )
+        if get_config_key_author:
+            KEY_AUTHOR = get_config_key_author
+
+        #
+        client_id = ""
+        get_config_client_id = GET_VALUE_ACTION_SYSTEM(
+            ConfigAppOauth, "CLIENT_ID_APP", "default"
+        )
+        if get_config_client_id:
+            client_id = get_config_client_id
+
+        client_secret = ""
+        get_config_client_secret = GET_VALUE_ACTION_SYSTEM(
+            ConfigAppOauth, "CLIENT_SECRET_APP", "default"
+        )
+        if get_config_client_secret:
+            client_secret = get_config_client_secret
+
+        context = {
+            "host_be": settings.HOST,
+            "KEY_AUTHOR": KEY_AUTHOR,
+            "LIST_ROLE": LIST_ROLE,
+            "LIST_ROLE_JSON": mark_safe(json.dumps(LIST_ROLE)),
+            "client_id": client_id,
+            "client_secret": client_secret,
+        }
+        return TemplateResponse(request, "xn_login/xn_login.html", context)
+
+    @action(methods=["get"], detail=False, url_path="logout")
+    def XN_NB_LOGOUT(self, request):
+        # init
+        context = {
+            "host_be": settings.HOST,
+        }
+        return TemplateResponse(request, "xn_login/xn_logout.html", context)
+
+    @action(methods=["get"], detail=False, url_path="main")
+    def XN_NB_LAB_MAIN(self, request):
+        # init
+        LIST_ROLE = []
+        get_config_role = GET_VALUE_ACTION_SYSTEM(
+            ConfigAppDefault, "LIST_ROLE_FOR_XN_NHAN_MAU", "default"
+        )
+        if get_config_role:
+            LIST_ROLE = json.loads(get_config_role)
+
+        KEY_AUTHOR = "BTHNOIBO"
+        get_config_key_author = GET_VALUE_ACTION_SYSTEM(
+            ConfigAppOauth, "KEY_AUTHORIZATION", "default"
+        )
+        if get_config_key_author:
+            KEY_AUTHOR = get_config_key_author
+
+        # init params
+        defaultParams = """
+        {
+        "MAYTE": "",
+        "TIEPNHAN_ID": "",
+        "FROM_DATE": new Date().toISOString().split('T')[0],
+        "TO_DATE": new Date().toISOString().split('T')[0],
+        "page": "1",
+        "limit": "100",
+        "ordering": "-NGAYTAO"
+        }
+        """
+        get_config_params_default = GET_VALUE_ACTION_SYSTEM(
+            ConfigAppDefault, "OBJ_PARAMS_SEARCH_XN_ALL", "default"
+        )
+        if get_config_params_default:
+            defaultParams = get_config_params_default
+        # print(get_config_params_default)
+
+        # init params labels
+        defaultParamsLabels = """
+        {
+         "MAYTE": "Mã Y Tế",
+         "TIEPNHAN_ID": "TIEPNHAN ID",
+         "FROM_DATE": "From Date",
+         "TO_DATE": "To Date",
+         "page": "Page",
+         "limit": "Limit",
+         "ordering": "Ordering"
+        }
+        """
+        get_config_defaultParamsLabels = GET_VALUE_ACTION_SYSTEM(
+            ConfigAppDefault, "OBJ_PARAMS_SEARCH_MAPPING_LABEL_XN_ALL", "default"
+        )
+        if get_config_defaultParamsLabels:
+            defaultParamsLabels = get_config_defaultParamsLabels
+
+        # init tableColumnsLabels
+        tableColumnsLabels = """
+        {
+        "SOPHIEUYEUCAU": "Request No.",
+        "TENDICHVU": "Service Name",
+        "TENNHOMDICHVU": "Service Group",
+        "NGAYGIOYEUCAU": "Request Date",
+        "TRANGTHAI": "Status",
+        "PHONGBAN_YEUCAU": "Request Dept.",
+        "TEN_BS_CD": "Ordering Doctor",
+        "TENNHOMDICHVU": "Tên nhóm dịch vụ"
+        }
+        """
+        get_config_defaultTableViewLabels = GET_VALUE_ACTION_SYSTEM(
+            ConfigAppDefault, "OBJ_MAPPING_TABLE_COLUMN_XN_ALL", "default"
+        )
+        if get_config_defaultTableViewLabels:
+            tableColumnsLabels = get_config_defaultTableViewLabels
+
+        # init tableViewDetailColumnsLabels
+        tableViewDetailColumnsLabels = """
+        {
+        "TRANGTHAI": "Trạng thái",
+        "TRANGTHAI_UPDATED": "Trạng Thái",
+        "user_infor.first_name": "Tên",
+        "type": "Loại Ghi Nhận",
+        "user_infor.department_name": "Nhân Viên K/P",
+        "created_date": "Ngày Giờ Thực Hiện"
+        }
+        """
+        get_config_defaultTableViewLabels = GET_VALUE_ACTION_SYSTEM(
+            ConfigAppDefault, "OBJ_MAPPING_TABLE_VIEW_DETAIL_COLUMN_XN_ALL", "default"
+        )
+        if get_config_defaultTableViewLabels:
+            tableViewDetailColumnsLabels = get_config_defaultTableViewLabels
+
+        # init listSortXN
+        listSortXN = """
+        [
+              { value: '-NGAYTAO', text: 'Thời gian tạo gần đây' },
+              { value: 'NGAYTAO', text: 'Thời gian tạo xa nhất' },
+            ]
+        """
+        get_config_listSortXN = GET_VALUE_ACTION_SYSTEM(
+            ConfigAppDefault, "LIST_SORT_FOR_FILTER_XN_ALL", "default"
+        )
+        if get_config_listSortXN:
+            listSortXN = get_config_listSortXN
+
+        # init listColumnExceptOnClient
+        listColumnExceptOnClient = """
+        ['TRANGTHAI', 'DUOCPHEPTHUCHIEN', 'ANOTHER_KEY']
+        """
+        get_config_listColumnExceptOnClient = GET_VALUE_ACTION_SYSTEM(
+            ConfigAppDefault, "LIST_COLUMN_EXCEPT_OF_CLIENT_XN_ALL", "default"
+        )
+        if get_config_listColumnExceptOnClient:
+            listColumnExceptOnClient = get_config_listColumnExceptOnClient
+
+        # init listCodePBRenderLayMau
+        listCodePBRenderLayMau = """
+        ['PKTT', 'GPB', 'ANOTHER_KEY']
+        """
+        get_config_listCodePBRenderLayMau = GET_VALUE_ACTION_SYSTEM(
+            ConfigAppDefault, "LIST_CODE_PB_RENDER_BUTTON_THUCHIEN_LAYMAU", "default"
+        )
+        if get_config_listCodePBRenderLayMau:
+            listCodePBRenderLayMau = get_config_listCodePBRenderLayMau
+
+        # init listCodePBRenderNhanMau
+        listCodePBRenderNhanMau = """
+        ['PKTT', 'GPB', 'ANOTHER_KEY']
+        """
+        get_config_listCodePBRenderNhanMau = GET_VALUE_ACTION_SYSTEM(
+            ConfigAppDefault, "LIST_CODE_PB_RENDER_BUTTON_THUCHIEN_NHANMAU", "default"
+        )
+        if get_config_listCodePBRenderNhanMau:
+            listCodePBRenderNhanMau = get_config_listCodePBRenderNhanMau
+
+        context = {
+            "host_be": settings.HOST,
+            "KEY_AUTHOR": KEY_AUTHOR,
+            "LIST_ROLE": LIST_ROLE,
+            "LIST_ROLE_JSON": mark_safe(json.dumps(LIST_ROLE)),
+            "defaultParams": mark_safe(defaultParams),
+            "defaultParamsLabels": mark_safe(defaultParamsLabels),
+            "tableColumnsLabels": mark_safe(tableColumnsLabels),
+            "tableViewDetailColumnsLabels": mark_safe(tableViewDetailColumnsLabels),
+            "listSortXN": mark_safe(listSortXN),
+            "listColumnExceptOnClient": mark_safe(listColumnExceptOnClient),
+            "listCodePBRenderLayMau": mark_safe(listCodePBRenderLayMau),
+            "listCodePBRenderNhanMau": mark_safe(listCodePBRenderNhanMau)
+        }
+        return TemplateResponse(request, "noibo/index.html", context)
+
+    @action(methods=["get"], detail=False, url_path="admin")
+    def XN_NB_ADMIN_PAGE(self, request):
+        #
+        KEY_AUTHOR = "BTHNOIBO"
+        get_config_key_author = GET_VALUE_ACTION_SYSTEM(
+            ConfigAppOauth, "KEY_AUTHORIZATION", "default"
+        )
+        if get_config_key_author:
+            KEY_AUTHOR = get_config_key_author
+
+        # init
+        today = datetime.now()
+        current_date = today.strftime("%Y-%m-%d")
+
+        where = {
+            "quaygoi": (
+                "Phòng 1 - Quầy 1"
+                if not request.query_params.get("quaygoi")
+                else request.query_params.get("quaygoi")
+            ),
+        }
+
+        context = {
+            "title": "FPT PLM Main",
+            "message": "Hello from Django template!",
+            "quaygoi": where["quaygoi"],
+            "host_be": settings.HOST,
+            "current_date": current_date,
+            "KEY_AUTHOR": KEY_AUTHOR,
+        }
+        return TemplateResponse(request, "xn_admin/xn_admin.html", context)
+
+    # ------------------------------------------------------------------------------ #
+    # ------------------------------------------------------------------------------ #
+    # ----------------------------------- POST ------------------------------------- #
+    # ------------------------------------------------------------------------------ #
+    # ------------------------------------------------------------------------------ #

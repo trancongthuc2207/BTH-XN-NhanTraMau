@@ -13,6 +13,7 @@ import string
 
 # Template
 from .viewsets.ViewTemplate.TemplateViewSets import *
+from .viewsets.ViewTemplate.NoiBoTemplateViewSets import *
 
 # ViewSet
 from .viewsets.DefaultViewSets import *
@@ -20,6 +21,7 @@ from .viewsets.PUB.XN_DVYeuCauViewSets import *
 
 # ------- Template ------- #
 TemplateViewSet = TemplateSetBase
+NoiBoTemplateViewSet = NoiBoTemplateSetBase
 
 # ------- Default ------- #
 DefaultViewSet = DefaultViewSetBase

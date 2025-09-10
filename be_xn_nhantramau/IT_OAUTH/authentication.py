@@ -13,12 +13,6 @@ from rest_framework import status
 # Utils
 from general_utils.Logging.logging_tools import LogHelper
 from general_utils.Template.TemplateResponse import ResponseBase
-from general_utils.GetConfig.UtilsConfigSystem import (
-    GET_VALUE_ACTION_SYSTEM,
-    GET_VALUE_BASE64_ACTION_SYSTEM,
-    CHECK_ACTION_SYSTEM,
-    BOOL_CHECK_ACTION_SYSTEM,
-)
 
 
 # Logger sys
@@ -28,6 +22,12 @@ logger_bug_sys = LogHelper("file_bug_sys")
 
 class OAuth2DRFAuthentication(BaseAuthentication):
     def authenticate(self, request):
+        from general_utils.GetConfig.UtilsConfigSystem import (
+            GET_VALUE_ACTION_SYSTEM,
+            GET_VALUE_BASE64_ACTION_SYSTEM,
+            CHECK_ACTION_SYSTEM,
+            BOOL_CHECK_ACTION_SYSTEM,
+        )
         # Response
         response = ResponseBase()
         #

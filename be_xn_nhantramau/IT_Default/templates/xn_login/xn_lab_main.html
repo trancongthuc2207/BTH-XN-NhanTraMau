@@ -528,6 +528,11 @@
                 cell.classList.add('bg-gray-200','text-gray-500');
               }
 
+              // Cập nhật màu Nếu chưa có ghi nhận mà trạng thái CHƯA KẾT QUẢ : CHUAKETQUA
+              if ("LIST_GHINHAN" in test && test.LIST_GHINHAN.length === 0 && test.TRANGTHAI !== "CHUAKETQUA") {
+                cell.classList.add('bg-green-200','text-green-500');
+              }
+
               row.appendChild(cell);
             });
 
